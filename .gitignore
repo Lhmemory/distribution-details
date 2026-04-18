@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vercel/
+.netlify/
+.DS_Store
+*.log
+*.tsbuildinfo
+stitch_ui.zip
+_stitch_unpack/

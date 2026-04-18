@@ -1,0 +1,53 @@
+{
+  "updatedAt": "2026-04-13T00:00:00.000Z",
+  "records": [
+    {
+      "id": "crv-001",
+      "system": "华润",
+      "barcode": "6900000000012",
+      "productName": "福临门一级大豆油 5L",
+      "archiveSupplyPrice": 58.00,
+      "archiveSalePrice": 69.90,
+      "promoSupplyPrice": 54.50,
+      "promoSalePrice": 62.90,
+      "monthlyGuidePrice": 64.90,
+      "updatedAt": "2026-04-13"
+    },
+    {
+      "id": "th-001",
+      "system": "天虹",
+      "barcode": "6900000000029",
+      "productName": "福临门压榨花生油 4L",
+      "archiveSupplyPrice": 72.00,
+      "archiveSalePrice": 85.90,
+      "promoSupplyPrice": 68.00,
+      "promoSalePrice": 79.90,
+      "monthlyGuidePrice": 82.90,
+      "updatedAt": "2026-04-12"
+    },
+    {
+      "id": "metro-001",
+      "system": "麦德龙",
+      "barcode": "6900000000036",
+      "productName": "福临门东北大米 10kg",
+      "archiveSupplyPrice": 86.00,
+      "archiveSalePrice": 99.00,
+      "promoSupplyPrice": 81.00,
+      "promoSalePrice": 92.80,
+      "monthlyGuidePrice": 95.00,
+      "updatedAt": "2026-04-11"
+    },
+    {
+      "id": "rt-001",
+      "system": "大润发",
+      "barcode": "6900000000043",
+      "productName": "福临门自然香丝苗米 5kg",
+      "archiveSupplyPrice": 43.00,
+      "archiveSalePrice": 49.90,
+      "promoSupplyPrice": 39.80,
+      "promoSalePrice": 45.90,
+      "monthlyGuidePrice": 47.90,
+      "updatedAt": "2026-04-10"
+    }
+  ]
+}
