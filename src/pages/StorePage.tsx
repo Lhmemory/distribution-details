@@ -60,7 +60,7 @@ export function StorePage() {
   const columns: TableColumn<StoreRecord>[] = [
     {
       key: "storeCode",
-      header: "门店编码",
+      header: "\u95e8\u5e97\u7f16\u7801",
       sortable: true,
       width: "8%",
       headerClassName: "whitespace-nowrap",
@@ -70,7 +70,7 @@ export function StorePage() {
     },
     {
       key: "storeName",
-      header: "门店名称",
+      header: "\u95e8\u5e97\u540d\u79f0",
       sortable: true,
       width: "12%",
       headerClassName: "whitespace-nowrap",
@@ -79,7 +79,7 @@ export function StorePage() {
     },
     {
       key: "city",
-      header: "城市",
+      header: "\u57ce\u5e02",
       width: "8%",
       headerClassName: "whitespace-nowrap",
       cellClassName: "whitespace-nowrap",
@@ -87,7 +87,7 @@ export function StorePage() {
     },
     {
       key: "region",
-      header: "区域",
+      header: "\u533a\u57df",
       width: "10%",
       headerClassName: "whitespace-nowrap",
       cellClassName: "whitespace-nowrap",
@@ -95,7 +95,7 @@ export function StorePage() {
     },
     {
       key: "format",
-      header: "业态",
+      header: "\u4e1a\u6001",
       width: "7%",
       headerClassName: "whitespace-nowrap",
       cellClassName: "whitespace-nowrap",
@@ -103,17 +103,17 @@ export function StorePage() {
     },
     {
       key: "status",
-      header: "营业状态",
+      header: "\u8425\u4e1a\u72b6\u6001",
       width: "8%",
       headerClassName: "whitespace-nowrap",
       render: (row) => (
         <Badge
           tone={
-            row.businessStatus === "营业"
+            row.businessStatus === "\u8425\u4e1a"
               ? "success"
-              : row.businessStatus === "已闭店"
+              : row.businessStatus === "\u5df2\u95ed\u5e97"
                 ? "critical"
-                : row.businessStatus === "店改"
+                : row.businessStatus === "\u5e97\u6539"
                   ? "neutral"
                   : "primary"
           }
@@ -124,7 +124,7 @@ export function StorePage() {
     },
     {
       key: "planDate",
-      header: "计划时间",
+      header: "\u8ba1\u5212\u65f6\u95f4",
       width: "8%",
       headerClassName: "whitespace-nowrap",
       cellClassName: "whitespace-nowrap",
@@ -132,7 +132,7 @@ export function StorePage() {
     },
     {
       key: "salesVolume",
-      header: "销量",
+      header: "\u9500\u91cf",
       sortable: true,
       width: "12%",
       headerClassName: "whitespace-nowrap",
@@ -142,7 +142,7 @@ export function StorePage() {
     },
     {
       key: "updatedAt",
-      header: "最近更新时间",
+      header: "\u6700\u8fd1\u66f4\u65b0\u65f6\u95f4",
       sortable: true,
       width: "12%",
       headerClassName: "whitespace-nowrap",
@@ -152,14 +152,14 @@ export function StorePage() {
     },
     {
       key: "actions",
-      header: "操作",
+      header: "\u64cd\u4f5c",
       width: "15%",
       headerClassName: "whitespace-nowrap",
       cellClassName: "whitespace-nowrap",
       render: (row) => (
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="secondary" className="min-h-9 min-w-[108px] px-3" onClick={() => setActiveStore(row)}>
-            查看详情
+            \u67e5\u770b\u8be6\u60c5
           </Button>
           <Button
             variant="secondary"
@@ -170,7 +170,7 @@ export function StorePage() {
               setFormOpen(true);
             }}
           >
-            编辑门店
+            \u7f16\u8f91\u95e8\u5e97
           </Button>
         </div>
       ),
@@ -188,9 +188,9 @@ export function StorePage() {
     try {
       const records = await parseStoreTemplate(file, selectedSystemId, systems, authUser);
       records.forEach((record) => upsertStore(record));
-      setUploadMessage(`已导入 ${records.length} 个门店。`);
+      setUploadMessage(`\u5df2\u5bfc\u5165 ${records.length} \u4e2a\u95e8\u5e97\u3002`);
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "门店模板导入失败。");
+      setUploadError(error instanceof Error ? error.message : "\u95e8\u5e97\u6a21\u677f\u5bfc\u5165\u5931\u8d25\u3002");
     } finally {
       event.target.value = "";
       setUploading(false);
@@ -199,43 +199,44 @@ export function StorePage() {
 
   return (
     <AppShell
-      pageTitle="门店信息"
-      pageDescription="维护门店编码、城市、区域、业态、营业状态和模板导入。"
+      pageTitle="\u95e8\u5e97\u4fe1\u606f"
+      pageDescription="\u7ef4\u62a4\u95e8\u5e97\u7f16\u7801\u3001\u57ce\u5e02\u3001\u533a\u57df\u3001\u4e1a\u6001\u3001\u8425\u4e1a\u72b6\u6001\u548c\u6a21\u677f\u5bfc\u5165\u3002"
       pageActions={
         <div className="flex flex-wrap gap-2">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
           <Button variant="secondary" onClick={downloadStoreTemplate}>
             <Download className="mr-1 h-4 w-4" />
-            下载模板
+            \u4e0b\u8f7d\u6a21\u677f
           </Button>
           <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1 h-4 w-4" />
-            {uploading ? "导入中..." : "上传模板"}
+            {uploading ? "\u5bfc\u5165\u4e2d..." : "\u4e0a\u4f20\u6a21\u677f"}
           </Button>
           <Button
             variant="secondary"
             onClick={() =>
               exportRowsToXlsx(
                 rows.map((row) => ({
-                  门店编码: row.storeCode,
-                  门店名称: row.storeName,
-                  城市: row.city,
-                  区域: row.region,
-                  业态: row.format,
-                  门店状态: row.businessStatus,
-                  计划闭店时间: row.plannedCloseDate ?? "",
-                  计划开业时间: row.plannedOpenDate ?? "",
-                  店改开业时间: row.renovationOpenDate ?? "",
-                  销量: row.salesVolume,
-                  最近更新时间: row.updatedAt,
+                  \u7cfb\u7edf: systems.find((item) => item.id === row.systemId)?.label ?? row.systemId,
+                  \u95e8\u5e97\u7f16\u7801: row.storeCode,
+                  \u95e8\u5e97\u540d\u79f0: row.storeName,
+                  \u57ce\u5e02: row.city,
+                  \u533a\u57df: row.region,
+                  \u4e1a\u6001: row.format,
+                  \u95e8\u5e97\u72b6\u6001: row.businessStatus,
+                  \u8ba1\u5212\u95ed\u5e97\u65f6\u95f4: row.plannedCloseDate ?? "",
+                  \u8ba1\u5212\u5f00\u4e1a\u65f6\u95f4: row.plannedOpenDate ?? "",
+                  \u5e97\u6539\u5f00\u4e1a\u65f6\u95f4: row.renovationOpenDate ?? "",
+                  \u9500\u91cf: row.salesVolume,
+                  \u6700\u8fd1\u66f4\u65b0\u65f6\u95f4: row.updatedAt,
                 })),
-                "门店信息导出",
-                "门店信息",
+                "\u95e8\u5e97\u4fe1\u606f\u5bfc\u51fa",
+                "\u95e8\u5e97\u4fe1\u606f",
               )
             }
           >
             <Download className="mr-1 h-4 w-4" />
-            导出 XLSX
+            \u5bfc\u51fa XLSX
           </Button>
           <Button
             disabled={!canCreateStore}
@@ -245,7 +246,7 @@ export function StorePage() {
             }}
           >
             <Plus className="mr-1 h-4 w-4" />
-            新增门店
+            \u65b0\u589e\u95e8\u5e97
           </Button>
         </div>
       }
@@ -256,24 +257,24 @@ export function StorePage() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               className="field-input bg-white pl-10"
-              placeholder="搜索门店编码 / 门店名称 / 城市"
+              placeholder="\u641c\u7d22\u95e8\u5e97\u7f16\u7801 / \u95e8\u5e97\u540d\u79f0 / \u57ce\u5e02"
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
             />
           </label>
           <select className="field-input bg-white" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="all">全部门店状态</option>
-            <option value="营业">营业</option>
-            <option value="已闭店">已闭店</option>
-            <option value="计划闭店">计划闭店</option>
-            <option value="计划开业">计划开业</option>
-            <option value="店改">店改</option>
+            <option value="all">\u5168\u90e8\u95e8\u5e97\u72b6\u6001</option>
+            <option value="\u8425\u4e1a">\u8425\u4e1a</option>
+            <option value="\u5df2\u95ed\u5e97">\u5df2\u95ed\u5e97</option>
+            <option value="\u8ba1\u5212\u95ed\u5e97">\u8ba1\u5212\u95ed\u5e97</option>
+            <option value="\u8ba1\u5212\u5f00\u4e1a">\u8ba1\u5212\u5f00\u4e1a</option>
+            <option value="\u5e97\u6539">\u5e97\u6539</option>
           </select>
         </div>
 
         <div className="mb-4 flex items-center gap-2">
-          <Badge tone="primary">已启用模板导入</Badge>
-          <span className="text-sm text-muted">先下载标准模板，按模板填完后上传到当前系统。</span>
+          <Badge tone="primary">\u5df2\u542f\u7528\u6a21\u677f\u5bfc\u5165</Badge>
+          <span className="text-sm text-muted">\u6a21\u677f\u548c\u5bfc\u51fa\u90fd\u5df2\u5e26\u7cfb\u7edf\u5217\uff1b\u672a\u586b\u5199\u7cfb\u7edf\u65f6\uff0c\u9ed8\u8ba4\u5bfc\u5165\u5230\u5f53\u524d\u5df2\u9009\u7cfb\u7edf\u3002</span>
         </div>
 
         {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
@@ -283,9 +284,9 @@ export function StorePage() {
           rows={rows}
           columns={columns}
           pageSize={20}
-          paginationSummary={`当前系统共 ${scopedTotalCount} 个门店`}
-          emptyTitle="暂无门店信息"
-          emptyDescription="当前系统下没有匹配门店，可以调整筛选条件或上传模板。"
+          paginationSummary={`\u5f53\u524d\u7cfb\u7edf\u5171 ${scopedTotalCount} \u4e2a\u95e8\u5e97`}
+          emptyTitle="\u6682\u65e0\u95e8\u5e97\u4fe1\u606f"
+          emptyDescription="\u5f53\u524d\u7cfb\u7edf\u4e0b\u6ca1\u6709\u5339\u914d\u95e8\u5e97\uff0c\u53ef\u4ee5\u8c03\u6574\u7b5b\u9009\u6761\u4ef6\u6216\u4e0a\u4f20\u6a21\u677f\u3002"
         />
       </section>
 
