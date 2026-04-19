@@ -9,8 +9,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
 import { clsx } from "clsx";
+import { NavLink } from "react-router-dom";
 import { useAppContext } from "../../app/context/AppContext";
 
 const navItems = [
@@ -42,11 +42,11 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       ) : null}
       <aside
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 flex-col bg-surface-low px-5 py-6 transition-transform lg:static lg:h-screen lg:w-56 lg:px-4 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(20rem,85vw)] shrink-0 flex-col bg-surface-low px-4 py-5 transition-transform lg:static lg:h-screen lg:w-56 lg:translate-x-0 lg:px-4 lg:py-6",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="mb-8 flex items-center justify-between gap-3">
+        <div className="mb-6 flex items-center justify-between gap-3 lg:mb-8">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-mono bg-primary text-white">
               <ShieldCheck className="h-5 w-5" />
@@ -64,7 +64,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <nav className="space-y-1">
+        <nav className="space-y-1.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -72,7 +72,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               onClick={onClose}
               className={({ isActive }) =>
                 clsx(
-                  "relative flex items-center gap-3 rounded-mono px-4 py-3 text-sm font-medium transition",
+                  "relative flex items-center gap-3 rounded-mono px-3 py-3 text-sm font-medium transition lg:px-4",
                   isActive
                     ? "bg-surface-base text-primary shadow-ambient"
                     : "text-muted hover:bg-surface-high hover:text-text",
@@ -90,7 +90,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        <div className="mt-auto rounded-mono bg-surface-base p-4 shadow-ambient">
+        <div className="mt-auto rounded-mono bg-surface-base p-3 shadow-ambient lg:p-4">
           <p className="text-sm font-semibold text-text">{authUser?.name ?? "访客"}</p>
           <p className="mt-1 text-xs uppercase tracking-[0.14em] text-muted">{authUser?.role ?? "未登录"}</p>
         </div>
