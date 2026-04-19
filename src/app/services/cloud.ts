@@ -160,6 +160,21 @@ function toHex(bytes: Uint8Array) {
     .join("");
 }
 
+function fromHex(hex: string) {
+  if (!hex || hex.length % 2 !== 0) return null;
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let index = 0; index < hex.length; index += 2) {
+    const value = Number.parseInt(hex.slice(index, index + 2), 16);
+    if (Number.isNaN(value)) return null;
+    bytes[index / 2] = value;
+  }
+  try {
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
 export function buildInternalLoginEmail(account: string) {
   const normalized = account.trim();
   if (!normalized) {
@@ -167,6 +182,17 @@ export function buildInternalLoginEmail(account: string) {
   }
 
   return `acct-${toHex(new TextEncoder().encode(normalized.toLowerCase()))}@scka-login.invalid`;
+}
+
+function decodeInternalLoginEmail(email: string) {
+  const normalized = email.trim().toLowerCase();
+  const match = normalized.match(/^acct-([0-9a-f]+)@scka-login\.invalid$/);
+  if (!match?.[1]) return null;
+  return fromHex(match[1])?.trim() || null;
+}
+
+function isFallbackAccount(account: string) {
+  return /^user-[0-9a-f]{8}$/i.test(account.trim());
 }
 
 function createHeaders(accessToken?: string, extra?: Record<string, string>) {
@@ -220,13 +246,18 @@ async function fetchSupabase(path: string, init?: RequestInit, accessToken?: str
 function mapProfileRow(row: ProfileRow): UserAccount {
   const email = row.email ?? "";
   const emailPrefix = email.includes("@") ? email.split("@")[0] : "";
-  const fallbackAccount = emailPrefix || `user-${row.id.slice(0, 8)}`;
+  const decodedAccount = decodeInternalLoginEmail(email);
+  const rawAccount = row.account?.trim() ?? "";
+  const accountFromRow =
+    rawAccount && !isFallbackAccount(rawAccount) ? rawAccount : "";
+  const fallbackAccount =
+    accountFromRow || decodedAccount || emailPrefix || `user-${row.id.slice(0, 8)}`;
   const viewSystemIds = Array.from(
     new Set([...(row.view_system_ids ?? []), ...(row.allowed_systems ?? [])]),
   );
   return {
     id: row.id,
-    account: row.account?.trim() || fallbackAccount,
+    account: fallbackAccount,
     email,
     name: row.display_name ?? (emailPrefix || fallbackAccount),
     role: row.role === "admin" || row.role === "editor" ? row.role : "viewer",
