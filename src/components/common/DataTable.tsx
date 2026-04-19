@@ -62,6 +62,9 @@ export function DataTable<T>({
   const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pageRows = sortedRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const [headlineColumn, ...detailColumns] = columns;
+  const actionColumn = detailColumns.find((column) => column.key === "actions");
+  const contentColumns = detailColumns.filter((column) => column.key !== "actions");
 
   function toggleSort(key: string) {
     if (sortKey === key) {
@@ -79,7 +82,50 @@ export function DataTable<T>({
 
   return (
     <div>
-      <div className="overflow-x-auto rounded-mono bg-surface-base shadow-ambient">
+      <div className="md:hidden">
+        <div className="space-y-3">
+          {pageRows.map((row, rowIndex) => (
+            <article
+              key={rowIndex}
+              className="overflow-hidden rounded-mono border border-line/70 bg-surface-base shadow-ambient"
+            >
+              {headlineColumn ? (
+                <div className="border-b border-line/70 bg-[#f7fafc] px-4 py-3">
+                  <p className="mb-1 text-[11px] font-semibold tracking-[0.12em] text-muted">{headlineColumn.header}</p>
+                  <div className={clsx("text-base font-semibold leading-6 text-text", headlineColumn.cellClassName)}>
+                    {headlineColumn.render(row)}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="grid gap-0">
+                {contentColumns.map((column) => (
+                  <div
+                    key={column.key}
+                    className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 border-b border-line/60 px-4 py-3 last:border-b-0"
+                  >
+                    <p className="pt-0.5 text-[11px] font-semibold tracking-[0.08em] text-muted">{column.header}</p>
+                    <div className={clsx("min-w-0 text-sm leading-6 text-text", column.cellClassName)}>
+                      {column.render(row)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {actionColumn ? (
+                <div className="border-t border-line/70 bg-[#fbfdff] px-4 py-3">
+                  <p className="mb-2 text-[11px] font-semibold tracking-[0.08em] text-muted">{actionColumn.header}</p>
+                  <div className={clsx("mobile-actions text-sm text-text", actionColumn.cellClassName)}>
+                    {actionColumn.render(row)}
+                  </div>
+                </div>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-mono bg-surface-base shadow-ambient md:block">
         <table className="table-grid">
           <thead>
             <tr>
