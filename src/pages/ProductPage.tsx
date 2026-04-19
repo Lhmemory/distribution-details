@@ -1,10 +1,11 @@
 import { ChevronDown, ChevronUp, Download, Plus, SlidersHorizontal, Trash2, Upload } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useAppContext } from "../app/context/AppContext";
 import { AsyncStatus, ColumnConfig, ProductRecord } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
 import { formatCurrency } from "../app/utils/format";
 import { canAccessSystem } from "../app/utils/permissions";
+import { downloadProductTemplate, parseProductTemplate } from "../app/utils/templateImport";
 import { Badge } from "../components/common/Badge";
 import { Button } from "../components/common/Button";
 import { DataTable, TableColumn } from "../components/common/DataTable";
@@ -33,6 +34,10 @@ export function ProductPage() {
   const [editing, setEditing] = useState<ProductRecord | null>(null);
   const [columns, setColumns] = useState(defaultColumns);
   const [columnsExpanded, setColumnsExpanded] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredRows = useMemo(
     () =>
@@ -90,11 +95,7 @@ export function ProductPage() {
           sortable: true,
           width: "18%",
           sortValue: (row: ProductRecord) => row.productName,
-          render: (row: ProductRecord) => (
-            <span className="clamp-2 block break-words font-medium leading-6 text-text">
-              {row.productName}
-            </span>
-          ),
+          render: (row: ProductRecord) => <span className="clamp-2 block break-words font-medium leading-6 text-text">{row.productName}</span>,
         },
         {
           key: "archiveSupplyPrice",
@@ -183,15 +184,40 @@ export function ProductPage() {
     [columns, deleteProduct],
   );
 
+  async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadMessage("");
+    setUploadError("");
+
+    try {
+      const records = await parseProductTemplate(file, selectedSystemId, systems, authUser);
+      records.forEach((record) => upsertProduct(record));
+      setUploadMessage(`已导入 ${records.length} 个商品。`);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "商品模板导入失败。");
+    } finally {
+      event.target.value = "";
+      setUploading(false);
+    }
+  }
+
   return (
     <AppShell
       pageTitle="商品信息"
-      pageDescription="按系统维护商品档案、价格字段与扩展列配置。"
+      pageDescription="按系统维护商品档案、价格字段与模板导入导出。"
       pageActions={
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary">
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
+          <Button variant="secondary" onClick={downloadProductTemplate}>
+            <Download className="mr-1 h-4 w-4" />
+            下载模板
+          </Button>
+          <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1 h-4 w-4" />
-            导入
+            {uploading ? "导入中..." : "上传模板"}
           </Button>
           <Button
             variant="secondary"
@@ -256,15 +282,9 @@ export function ProductPage() {
             <div className="flex items-center gap-2 text-sm font-medium text-text">
               <SlidersHorizontal className="h-4 w-4 text-primary" />
               列配置
-              <span className="text-xs font-normal text-muted">
-                已启用 {columns.filter((item) => item.enabled).length} 列
-              </span>
+              <span className="text-xs font-normal text-muted">已启用 {columns.filter((item) => item.enabled).length} 列</span>
             </div>
-            {columnsExpanded ? (
-              <ChevronUp className="h-4 w-4 text-muted" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted" />
-            )}
+            {columnsExpanded ? <ChevronUp className="h-4 w-4 text-muted" /> : <ChevronDown className="h-4 w-4 text-muted" />}
           </button>
 
           {columnsExpanded ? (
@@ -276,9 +296,7 @@ export function ProductPage() {
                     checked={column.enabled}
                     onChange={(event) =>
                       setColumns((current) =>
-                        current.map((item) =>
-                          item.key === column.key ? { ...item, enabled: event.target.checked } : item,
-                        ),
+                        current.map((item) => (item.key === column.key ? { ...item, enabled: event.target.checked } : item)),
                       )
                     }
                   />
@@ -290,9 +308,12 @@ export function ProductPage() {
         </div>
 
         <div className="mb-4 flex items-center gap-2">
-          <Badge tone="primary">扩展列已启用</Badge>
-          <span className="text-sm text-muted">默认已隐藏商品编码，需要时可以在这里勾出来。</span>
+          <Badge tone="primary">已启用模板导入</Badge>
+          <span className="text-sm text-muted">先下载标准模板，填好后上传；默认仍隐藏商品编码列。</span>
         </div>
+
+        {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
+        {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
 
         <DataTable
           rows={filteredRows}
@@ -301,7 +322,7 @@ export function ProductPage() {
           pageSize={20}
           paginationSummary={`当前系统共 ${scopedTotalCount} 个商品`}
           emptyTitle="暂无商品信息"
-          emptyDescription="当前系统或筛选条件下没有匹配商品，可以先新增或导入。"
+          emptyDescription="当前系统或筛选条件下没有匹配商品，可以先新增或上传模板。"
         />
       </section>
 
