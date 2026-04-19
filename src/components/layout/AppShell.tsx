@@ -18,7 +18,7 @@ export function AppShell({
   children,
 }: PropsWithChildren<AppShellProps>) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { authUser } = useAppContext();
+  const { authUser, authMode, bootstrapStatus, bootstrapMessage } = useAppContext();
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -35,6 +35,12 @@ export function AppShell({
         </div>
 
         <SystemTabs />
+
+        {authMode === "supabase" && (bootstrapStatus === "loading" || bootstrapMessage) ? (
+          <div className="mb-4 rounded-mono border border-line bg-surface-low px-4 py-3 text-sm text-muted">
+            {bootstrapStatus === "loading" ? "正在同步云端数据..." : bootstrapMessage}
+          </div>
+        ) : null}
 
         <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
