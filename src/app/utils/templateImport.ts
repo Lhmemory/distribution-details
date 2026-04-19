@@ -4,32 +4,32 @@ import { nowLabel } from "./format";
 import { canAccessSystem } from "./permissions";
 
 const PRODUCT_HEADERS = {
-  system: "\u7cfb\u7edf",
-  barcode: "\u6761\u7801",
-  productCode: "\u5546\u54c1\u7f16\u7801",
-  productName: "\u5546\u54c1\u540d\u79f0",
-  archiveSupplyPrice: "\u5efa\u6863\u4f9b\u4ef7",
-  archiveSalePrice: "\u5efa\u6863\u552e\u4ef7",
-  promoSupplyPrice: "\u4fc3\u9500\u4f9b\u4ef7",
-  promoSalePrice: "\u4fc3\u9500\u552e\u4ef7",
-  category: "\u884c\u9500\u54c1\u7c7b",
+  system: "系统",
+  barcode: "条码",
+  productCode: "商品编码",
+  productName: "商品名称",
+  archiveSupplyPrice: "建档供价",
+  archiveSalePrice: "建档售价",
+  promoSupplyPrice: "促销供价",
+  promoSalePrice: "促销售价",
+  category: "行销品类",
 } as const;
 
 const STORE_HEADERS = {
-  system: "\u7cfb\u7edf",
-  storeCode: "\u95e8\u5e97\u7f16\u7801",
-  storeName: "\u95e8\u5e97\u540d\u79f0",
-  city: "\u57ce\u5e02",
-  region: "\u533a\u57df",
-  format: "\u4e1a\u6001",
-  businessStatus: "\u8425\u4e1a\u72b6\u6001",
-  plannedCloseDate: "\u8ba1\u5212\u95ed\u5e97\u65f6\u95f4",
-  plannedOpenDate: "\u8ba1\u5212\u5f00\u4e1a\u65f6\u95f4",
-  renovationOpenDate: "\u5e97\u6539\u5f00\u4e1a\u65f6\u95f4",
-  salesVolume: "\u9500\u91cf",
+  system: "系统",
+  storeCode: "门店编码",
+  storeName: "门店名称",
+  city: "城市",
+  region: "区域",
+  format: "业态",
+  businessStatus: "营业状态",
+  plannedCloseDate: "计划闭店时间",
+  plannedOpenDate: "计划开业时间",
+  renovationOpenDate: "店改开业时间",
+  salesVolume: "销量",
 } as const;
 
-const HELP_HEADER = "\u8bf4\u660e";
+const HELP_HEADER = "说明";
 
 function pickTargetSystemId(selectedSystemId: string, systems: SystemItem[], authUser: UserAccount | null) {
   if (selectedSystemId !== "all") {
@@ -78,16 +78,16 @@ function resolveImportSystemId(
   if (explicitSystem) {
     const matchedSystem = findSystemByInput(explicitSystem, systems);
     if (!matchedSystem) {
-      throw new Error(`\u7b2c ${rowNumber} \u884c\u7684\u7cfb\u7edf "${explicitSystem}" \u4e0d\u5b58\u5728\u3002`);
+      throw new Error(`第 ${rowNumber} 行的系统 "${explicitSystem}" 不存在。`);
     }
 
     if (selectedSystemId !== "all" && matchedSystem.id !== selectedSystemId) {
       const selectedLabel = systems.find((item) => item.id === selectedSystemId)?.label ?? selectedSystemId;
-      throw new Error(`\u7b2c ${rowNumber} \u884c\u7684\u7cfb\u7edf\u4e0e\u5f53\u524d\u9875\u9762\u5df2\u9009\u7cfb\u7edf "${selectedLabel}" \u4e0d\u4e00\u81f4\u3002`);
+      throw new Error(`第 ${rowNumber} 行的系统与当前页面已选系统 "${selectedLabel}" 不一致。`);
     }
 
     if (!canAccessSystem(authUser, matchedSystem.id, "edit")) {
-      throw new Error(`\u7b2c ${rowNumber} \u884c\u7684\u7cfb\u7edf "${matchedSystem.label}" \u6ca1\u6709\u7f16\u8f91\u6743\u9650\u3002`);
+      throw new Error(`第 ${rowNumber} 行的系统 "${matchedSystem.label}" 没有编辑权限。`);
     }
 
     return matchedSystem.id;
@@ -95,7 +95,7 @@ function resolveImportSystemId(
 
   const fallbackSystemId = pickTargetSystemId(selectedSystemId, systems, authUser);
   if (!fallbackSystemId) {
-    throw new Error(`\u7b2c ${rowNumber} \u884c\u672a\u586b\u5199\u7cfb\u7edf\uff0c\u8bf7\u5148\u5207\u6362\u5230\u5177\u4f53\u7cfb\u7edf\u6216\u5728 Excel \u4e2d\u8865\u9f50\u7cfb\u7edf\u5217\u3002`);
+    throw new Error(`第 ${rowNumber} 行未填写系统，请先切换到具体系统或在 Excel 中补齐系统列。`);
   }
 
   return fallbackSystemId;
@@ -107,30 +107,30 @@ export function downloadProductTemplate() {
     workbook,
     XLSX.utils.json_to_sheet([
       {
-        [PRODUCT_HEADERS.system]: "\u5929\u8679",
+        [PRODUCT_HEADERS.system]: "天虹",
         [PRODUCT_HEADERS.barcode]: "6900000000001",
         [PRODUCT_HEADERS.productCode]: "TH-0001",
-        [PRODUCT_HEADERS.productName]: "\u793a\u4f8b\u5546\u54c1\u540d\u79f0",
+        [PRODUCT_HEADERS.productName]: "示例商品名称",
         [PRODUCT_HEADERS.archiveSupplyPrice]: 49.9,
         [PRODUCT_HEADERS.archiveSalePrice]: 56.9,
         [PRODUCT_HEADERS.promoSupplyPrice]: 45.9,
         [PRODUCT_HEADERS.promoSalePrice]: 52.9,
-        [PRODUCT_HEADERS.category]: "\u6218\u7565",
+        [PRODUCT_HEADERS.category]: "战略",
       },
     ]),
-    "\u5546\u54c1\u6a21\u677f",
+    "商品模板",
   );
   XLSX.utils.book_append_sheet(
     workbook,
     XLSX.utils.json_to_sheet([
-      { [HELP_HEADER]: "1. \u53ef\u4ee5\u76f4\u63a5\u5728 Excel \u4e2d\u586b\u5199\u201c\u7cfb\u7edf\u201d\u5217\uff0c\u652f\u6301\u7cfb\u7edf\u540d\u79f0\u6216\u7cfb\u7edf ID\u3002" },
-      { [HELP_HEADER]: "2. \u5982\u679c\u4e0d\u586b\u7cfb\u7edf\u5217\uff0c\u5c06\u9ed8\u8ba4\u5bfc\u5165\u5230\u5f53\u524d\u9875\u9762\u5df2\u9009\u7684\u5177\u4f53\u7cfb\u7edf\u3002" },
-      { [HELP_HEADER]: "3. \u5546\u54c1\u7f16\u7801\u53ef\u7559\u7a7a\uff0c\u6761\u7801\u548c\u5546\u54c1\u540d\u79f0\u5efa\u8bae\u586b\u5199\u3002" },
-      { [HELP_HEADER]: "4. \u4ef7\u683c\u7559\u7a7a\u65f6\u6309 0 \u5904\u7406\uff0c\u652f\u6301 .xlsx / .xls / .csv\u3002" },
+      { [HELP_HEADER]: "1. 可以直接在 Excel 中填写“系统”列，支持系统名称或系统 ID。" },
+      { [HELP_HEADER]: "2. 如果不填系统列，将默认导入到当前页面已选的具体系统。" },
+      { [HELP_HEADER]: "3. 商品编码可留空，条码和商品名称建议填写。" },
+      { [HELP_HEADER]: "4. 价格留空时按 0 处理，支持 .xlsx / .xls / .csv。" },
     ]),
-    "\u586b\u5199\u8bf4\u660e",
+    "填写说明",
   );
-  XLSX.writeFile(workbook, "\u5546\u54c1\u5bfc\u5165\u6a21\u677f.xlsx");
+  XLSX.writeFile(workbook, "商品导入模板.xlsx");
 }
 
 export function downloadStoreTemplate() {
@@ -139,32 +139,32 @@ export function downloadStoreTemplate() {
     workbook,
     XLSX.utils.json_to_sheet([
       {
-        [STORE_HEADERS.system]: "\u534e\u6da6",
+        [STORE_HEADERS.system]: "华润",
         [STORE_HEADERS.storeCode]: "A001",
-        [STORE_HEADERS.storeName]: "\u793a\u4f8b\u95e8\u5e97",
-        [STORE_HEADERS.city]: "\u5e7f\u5dde\u5e02",
-        [STORE_HEADERS.region]: "\u5e7f\u5dde\u5927\u8d85",
-        [STORE_HEADERS.format]: "\u5927\u8d85",
-        [STORE_HEADERS.businessStatus]: "\u8425\u4e1a",
+        [STORE_HEADERS.storeName]: "示例门店",
+        [STORE_HEADERS.city]: "广州市",
+        [STORE_HEADERS.region]: "广州大超",
+        [STORE_HEADERS.format]: "大超",
+        [STORE_HEADERS.businessStatus]: "营业",
         [STORE_HEADERS.plannedCloseDate]: "",
         [STORE_HEADERS.plannedOpenDate]: "",
         [STORE_HEADERS.renovationOpenDate]: "",
         [STORE_HEADERS.salesVolume]: 100000,
       },
     ]),
-    "\u95e8\u5e97\u6a21\u677f",
+    "门店模板",
   );
   XLSX.utils.book_append_sheet(
     workbook,
     XLSX.utils.json_to_sheet([
-      { [HELP_HEADER]: "1. \u53ef\u4ee5\u76f4\u63a5\u5728 Excel \u4e2d\u586b\u5199\u201c\u7cfb\u7edf\u201d\u5217\uff0c\u652f\u6301\u7cfb\u7edf\u540d\u79f0\u6216\u7cfb\u7edf ID\u3002" },
-      { [HELP_HEADER]: "2. \u5982\u679c\u4e0d\u586b\u7cfb\u7edf\u5217\uff0c\u5c06\u9ed8\u8ba4\u5bfc\u5165\u5230\u5f53\u524d\u9875\u9762\u5df2\u9009\u7684\u5177\u4f53\u7cfb\u7edf\u3002" },
-      { [HELP_HEADER]: "3. \u95e8\u5e97\u7f16\u7801\u53ef\u7559\u7a7a\uff0c\u95e8\u5e97\u540d\u79f0\u5efa\u8bae\u5fc5\u586b\u3002" },
-      { [HELP_HEADER]: "4. \u8425\u4e1a\u72b6\u6001\u652f\u6301\uff1a\u8425\u4e1a\u3001\u5df2\u95ed\u5e97\u3001\u8ba1\u5212\u95ed\u5e97\u3001\u8ba1\u5212\u5f00\u4e1a\u3001\u5e97\u6539\u3002" },
+      { [HELP_HEADER]: "1. 可以直接在 Excel 中填写“系统”列，支持系统名称或系统 ID。" },
+      { [HELP_HEADER]: "2. 如果不填系统列，将默认导入到当前页面已选的具体系统。" },
+      { [HELP_HEADER]: "3. 门店编码可留空，门店名称建议必填。" },
+      { [HELP_HEADER]: "4. 营业状态支持：营业、已闭店、计划闭店、计划开业、店改。" },
     ]),
-    "\u586b\u5199\u8bf4\u660e",
+    "填写说明",
   );
-  XLSX.writeFile(workbook, "\u95e8\u5e97\u5bfc\u5165\u6a21\u677f.xlsx");
+  XLSX.writeFile(workbook, "门店导入模板.xlsx");
 }
 
 export async function parseProductTemplate(
@@ -204,14 +204,14 @@ export async function parseProductTemplate(
         promoSupplyPrice: normalizeNumber(row[PRODUCT_HEADERS.promoSupplyPrice]),
         promoSalePrice: normalizeNumber(row[PRODUCT_HEADERS.promoSalePrice]),
         category: category || undefined,
-        brand: "\u798f\u4e34\u95e8",
+        brand: "福临门",
         updatedAt: nowLabel(),
       };
     })
     .filter((item): item is ProductRecord => Boolean(item));
 
   if (!records.length) {
-    throw new Error("\u6a21\u677f\u91cc\u6ca1\u6709\u8bc6\u522b\u5230\u53ef\u5bfc\u5165\u7684\u5546\u54c1\u6570\u636e\u3002");
+    throw new Error("模板里没有识别到可导入的商品数据。");
   }
 
   return records;
@@ -242,13 +242,13 @@ export async function parseStoreTemplate(
       );
       const rawStatus = normalizeText(row[STORE_HEADERS.businessStatus]);
       const businessStatus: StoreRecord["businessStatus"] =
-        rawStatus === "\u8425\u4e1a" ||
-        rawStatus === "\u5df2\u95ed\u5e97" ||
-        rawStatus === "\u8ba1\u5212\u95ed\u5e97" ||
-        rawStatus === "\u8ba1\u5212\u5f00\u4e1a" ||
-        rawStatus === "\u5e97\u6539"
+        rawStatus === "营业" ||
+        rawStatus === "已闭店" ||
+        rawStatus === "计划闭店" ||
+        rawStatus === "计划开业" ||
+        rawStatus === "店改"
           ? rawStatus
-          : "\u8425\u4e1a";
+          : "营业";
 
       return {
         id: `sto-import-${Date.now()}-${index}`,
@@ -259,12 +259,9 @@ export async function parseStoreTemplate(
         region: normalizeText(row[STORE_HEADERS.region]),
         format: normalizeText(row[STORE_HEADERS.format]),
         businessStatus,
-        plannedCloseDate:
-          businessStatus === "\u8ba1\u5212\u95ed\u5e97" ? normalizeOptionalDate(row[STORE_HEADERS.plannedCloseDate]) : undefined,
-        plannedOpenDate:
-          businessStatus === "\u8ba1\u5212\u5f00\u4e1a" ? normalizeOptionalDate(row[STORE_HEADERS.plannedOpenDate]) : undefined,
-        renovationOpenDate:
-          businessStatus === "\u5e97\u6539" ? normalizeOptionalDate(row[STORE_HEADERS.renovationOpenDate]) : undefined,
+        plannedCloseDate: businessStatus === "计划闭店" ? normalizeOptionalDate(row[STORE_HEADERS.plannedCloseDate]) : undefined,
+        plannedOpenDate: businessStatus === "计划开业" ? normalizeOptionalDate(row[STORE_HEADERS.plannedOpenDate]) : undefined,
+        renovationOpenDate: businessStatus === "店改" ? normalizeOptionalDate(row[STORE_HEADERS.renovationOpenDate]) : undefined,
         salesVolume: normalizeNumber(row[STORE_HEADERS.salesVolume]),
         updatedAt: nowLabel(),
       };
@@ -272,7 +269,7 @@ export async function parseStoreTemplate(
     .filter((item): item is StoreRecord => Boolean(item));
 
   if (!records.length) {
-    throw new Error("\u6a21\u677f\u91cc\u6ca1\u6709\u8bc6\u522b\u5230\u53ef\u5bfc\u5165\u7684\u95e8\u5e97\u6570\u636e\u3002");
+    throw new Error("模板里没有识别到可导入的门店数据。");
   }
 
   return records;
