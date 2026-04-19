@@ -1,10 +1,11 @@
-import { Download, Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Download, Plus, Search, Upload } from "lucide-react";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useAppContext } from "../app/context/AppContext";
 import { StoreRecord } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
 import { formatNumber } from "../app/utils/format";
 import { canAccessSystem } from "../app/utils/permissions";
+import { downloadStoreTemplate, parseStoreTemplate } from "../app/utils/templateImport";
 import { Badge } from "../components/common/Badge";
 import { Button } from "../components/common/Button";
 import { DataTable, TableColumn } from "../components/common/DataTable";
@@ -19,6 +20,10 @@ export function StorePage() {
   const [activeStore, setActiveStore] = useState<StoreRecord | null>(null);
   const [editingStore, setEditingStore] = useState<StoreRecord | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const rows = useMemo(
     () =>
@@ -49,9 +54,7 @@ export function StorePage() {
 
   const canCreateStore = Boolean(
     authUser &&
-      (selectedSystemId === "all"
-        ? authUser.role === "admin"
-        : canAccessSystem(authUser, selectedSystemId, "edit")),
+      (selectedSystemId === "all" ? authUser.role === "admin" : canAccessSystem(authUser, selectedSystemId, "edit")),
   );
 
   const columns: TableColumn<StoreRecord>[] = [
@@ -174,12 +177,41 @@ export function StorePage() {
     },
   ];
 
+  async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadMessage("");
+    setUploadError("");
+
+    try {
+      const records = await parseStoreTemplate(file, selectedSystemId, systems, authUser);
+      records.forEach((record) => upsertStore(record));
+      setUploadMessage(`已导入 ${records.length} 个门店。`);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "门店模板导入失败。");
+    } finally {
+      event.target.value = "";
+      setUploading(false);
+    }
+  }
+
   return (
     <AppShell
       pageTitle="门店信息"
-      pageDescription="维护门店编码、城市、区域、业态与营业状态。"
+      pageDescription="维护门店编码、城市、区域、业态、营业状态和模板导入。"
       pageActions={
         <div className="flex flex-wrap gap-2">
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
+          <Button variant="secondary" onClick={downloadStoreTemplate}>
+            <Download className="mr-1 h-4 w-4" />
+            下载模板
+          </Button>
+          <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+            <Upload className="mr-1 h-4 w-4" />
+            {uploading ? "导入中..." : "上传模板"}
+          </Button>
           <Button
             variant="secondary"
             onClick={() =>
@@ -239,13 +271,21 @@ export function StorePage() {
           </select>
         </div>
 
+        <div className="mb-4 flex items-center gap-2">
+          <Badge tone="primary">已启用模板导入</Badge>
+          <span className="text-sm text-muted">先下载标准模板，按模板填完后上传到当前系统。</span>
+        </div>
+
+        {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
+        {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
+
         <DataTable
           rows={rows}
           columns={columns}
           pageSize={20}
           paginationSummary={`当前系统共 ${scopedTotalCount} 个门店`}
           emptyTitle="暂无门店信息"
-          emptyDescription="当前系统下没有匹配门店，可以调整筛选条件后再查看。"
+          emptyDescription="当前系统下没有匹配门店，可以调整筛选条件或上传模板。"
         />
       </section>
 
