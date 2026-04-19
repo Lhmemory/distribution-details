@@ -84,4 +84,12 @@
     -webkit-line-clamp: 2;
     overflow: hidden;
   }
+
+  .mobile-actions > div {
+    @apply flex flex-col gap-2;
+  }
+
+  .mobile-actions button {
+    @apply w-full justify-center;
+  }
 }
