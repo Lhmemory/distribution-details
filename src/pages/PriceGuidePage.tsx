@@ -4,29 +4,22 @@ import { useAppContext } from "../app/context/AppContext";
 import { PriceGuideRecord } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
 import { formatCurrency, nowLabel } from "../app/utils/format";
-import { canAccessSystem } from "../app/utils/permissions";
 import { parsePriceGuideWorkbook } from "../app/utils/priceGuide";
 import { Button } from "../components/common/Button";
 import { DataTable, TableColumn } from "../components/common/DataTable";
 import { AppShell } from "../components/layout/AppShell";
 
+const PRICE_GUIDE_GLOBAL_SYSTEM_ID = "global-price-guide";
+
 export function PriceGuidePage() {
-  const { priceGuides, selectedSystemId, authUser, systems, importPriceGuides } = useAppContext();
+  const { priceGuides, importPriceGuides } = useAppContext();
   const [keyword, setKeyword] = useState("");
   const [sheetFilter, setSheetFilter] = useState("all");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const scopedRecords = useMemo(
-    () =>
-      priceGuides.filter((record) => {
-        const matchSystem = selectedSystemId === "all" || record.systemId === selectedSystemId;
-        const matchPermission = canAccessSystem(authUser, record.systemId, "view");
-        return matchSystem && matchPermission;
-      }),
-    [authUser, priceGuides, selectedSystemId],
-  );
+  const scopedRecords = priceGuides;
 
   const visibleRecords = useMemo(
     () =>
@@ -64,21 +57,12 @@ export function PriceGuidePage() {
     setUploadError("");
 
     try {
-      const targetSystemId =
-        selectedSystemId !== "all"
-          ? selectedSystemId
-          : systems.find((item) => item.id !== "all" && canAccessSystem(authUser, item.id, "edit"))?.id;
-
-      if (!targetSystemId) {
-        throw new Error("请先切换到具体系统后再导入价格指引。");
-      }
-
-      const records = await parsePriceGuideWorkbook(file, targetSystemId, nowLabel());
+      const records = await parsePriceGuideWorkbook(file, PRICE_GUIDE_GLOBAL_SYSTEM_ID, nowLabel());
       if (!records.length) {
         throw new Error("这份 Excel 没有识别到可导入的价格指引数据。");
       }
 
-      importPriceGuides(records, file.name, targetSystemId);
+      importPriceGuides(records, file.name, PRICE_GUIDE_GLOBAL_SYSTEM_ID);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "导入失败，请检查文件格式。");
     } finally {
@@ -162,7 +146,8 @@ export function PriceGuidePage() {
   return (
     <AppShell
       pageTitle="价格指引"
-      pageDescription="上传每月价格指引 Excel，按系统维护经销商结算价和重客促销供价。"
+      pageDescription="上传每月价格指引 Excel，统一维护经销商结算价和重客促销供价。"
+      showSystemTabs={false}
       pageActions={
         <div className="flex flex-wrap gap-2">
           <input
@@ -182,7 +167,6 @@ export function PriceGuidePage() {
             onClick={() =>
               exportRowsToXlsx(
                 visibleRecords.map((row) => ({
-                  系统: systems.find((item) => item.id === row.systemId)?.label ?? row.systemId,
                   文件名: row.sourceFileName,
                   页签: row.sheetName,
                   执行时间: row.executionPeriod ?? "",
@@ -224,13 +208,9 @@ export function PriceGuidePage() {
         </article>
 
         <article className="tonal-panel grid gap-4 p-5 sm:grid-cols-3">
-          <MetricCard title="当前记录" value={String(scopedRecords.length)} helper="当前系统价格指引条数" />
+          <MetricCard title="当前记录" value={String(scopedRecords.length)} helper="全局价格指引条数" />
           <MetricCard title="当前页签" value={String(sheetOptions.length)} helper="已识别的价格页签" />
-          <MetricCard
-            title="当前系统"
-            value={systems.find((item) => item.id === selectedSystemId)?.label ?? "全部"}
-            helper={selectedSystemId === "all" ? "上传前请切到具体系统" : "导入将归属到当前系统"}
-          />
+          <MetricCard title="数据范围" value="全系统共用" helper="所有有权限账号共用同一套价格指引" />
         </article>
       </section>
 
@@ -259,7 +239,7 @@ export function PriceGuidePage() {
           rows={visibleRecords}
           columns={columns}
           pageSize={20}
-          paginationSummary={`当前系统共 ${scopedRecords.length} 条价格指引`}
+          paginationSummary={`共 ${scopedRecords.length} 条价格指引`}
           emptyTitle="暂无价格指引"
           emptyDescription="先上传一份月度价格指引 Excel，页面就会自动解析并显示。"
         />

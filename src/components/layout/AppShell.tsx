@@ -9,12 +9,14 @@ interface AppShellProps {
   pageTitle: string;
   pageDescription?: string;
   pageActions?: ReactNode;
+  showSystemTabs?: boolean;
 }
 
 export function AppShell({
   pageTitle,
   pageDescription,
   pageActions,
+  showSystemTabs = true,
   children,
 }: PropsWithChildren<AppShellProps>) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -34,7 +36,7 @@ export function AppShell({
           </Button>
         </div>
 
-        <SystemTabs />
+        {showSystemTabs ? <SystemTabs /> : null}
 
         {authMode === "supabase" && (bootstrapStatus === "loading" || bootstrapMessage) ? (
           <div className="mb-4 rounded-mono border border-line bg-surface-low px-4 py-3 text-sm text-muted">
