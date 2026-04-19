@@ -16,12 +16,12 @@ export function SystemTabs() {
   }
 
   return (
-    <header className="soft-panel mb-5 flex flex-col gap-4 px-4 py-4 xl:flex-row xl:items-center xl:justify-between xl:px-5">
-      <div className="flex gap-2 overflow-x-auto pb-1">
+    <header className="soft-panel mb-4 flex flex-col gap-3 px-3 py-3 sm:px-4 sm:py-4 xl:mb-5 xl:flex-row xl:items-center xl:justify-between xl:px-5">
+      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {visibleSystems.map((system) => (
           <button
             key={system.id}
-            className={`rounded-mono px-3 py-2 text-sm font-medium transition ${
+            className={`shrink-0 rounded-mono px-3 py-2 text-sm font-medium transition ${
               selectedSystemId === system.id
                 ? "bg-surface-base text-primary shadow-ambient"
                 : "text-muted hover:bg-surface-base hover:text-text"
@@ -34,14 +34,14 @@ export function SystemTabs() {
       </div>
 
       {canManageAccounts(authUser) ? (
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-2 sm:flex sm:flex-row">
           <input
             className="field-input w-full bg-white sm:w-44"
             placeholder="新增系统"
             value={draftSystem}
             onChange={(event) => setDraftSystem(event.target.value)}
           />
-          <Button onClick={handleAddSystem}>
+          <Button className="justify-center" onClick={handleAddSystem}>
             <Plus className="mr-1 h-4 w-4" />
             新增系统
           </Button>
