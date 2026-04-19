@@ -1,5 +1,18 @@
 import { Role, SystemItem, UserAccount } from "../types";
 
+function normalize(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function buildPermissionSet(user: UserAccount | null) {
+  if (!user) return new Set<string>();
+  return new Set(
+    [...user.viewSystemIds, ...user.editSystemIds]
+      .filter((item) => Boolean(item))
+      .map((item) => normalize(item)),
+  );
+}
+
 export function canEditRole(role: Role) {
   return role === "editor" || role === "admin";
 }
@@ -11,18 +24,25 @@ export function canManageAccounts(user: UserAccount | null) {
 export function canAccessSystem(user: UserAccount | null, systemId: string, level: "view" | "edit" = "view") {
   if (!user || systemId === "all") return false;
   if (user.role === "admin") return true;
-  if (level === "edit") return user.editSystemIds.includes(systemId);
-  return user.viewSystemIds.includes(systemId) || user.editSystemIds.includes(systemId);
+
+  const normalizedId = normalize(systemId);
+  if (level === "edit") {
+    return user.editSystemIds.map((item) => normalize(item)).includes(normalizedId);
+  }
+
+  return (
+    user.viewSystemIds.map((item) => normalize(item)).includes(normalizedId) ||
+    user.editSystemIds.map((item) => normalize(item)).includes(normalizedId)
+  );
 }
 
 export function getVisibleSystems(user: UserAccount | null, systems: SystemItem[]) {
   if (!user) return systems.filter((item) => item.id === "all");
   if (user.role === "admin") return systems;
 
-  return systems.filter(
-    (item) =>
-      item.id === "all" ||
-      user.viewSystemIds.includes(item.id) ||
-      user.editSystemIds.includes(item.id),
-  );
+  const permissions = buildPermissionSet(user);
+  return systems.filter((item) => {
+    if (item.id === "all") return true;
+    return permissions.has(normalize(item.id)) || permissions.has(normalize(item.label));
+  });
 }

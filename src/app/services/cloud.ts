@@ -33,6 +33,7 @@ interface ProfileRow {
   role?: string | null;
   view_system_ids?: string[] | null;
   edit_system_ids?: string[] | null;
+  allowed_systems?: string[] | null;
   status?: string | null;
   updated_at?: string | null;
 }
@@ -218,13 +219,18 @@ async function fetchSupabase(path: string, init?: RequestInit, accessToken?: str
 
 function mapProfileRow(row: ProfileRow): UserAccount {
   const email = row.email ?? "";
+  const emailPrefix = email.includes("@") ? email.split("@")[0] : "";
+  const fallbackAccount = emailPrefix || `user-${row.id.slice(0, 8)}`;
+  const viewSystemIds = Array.from(
+    new Set([...(row.view_system_ids ?? []), ...(row.allowed_systems ?? [])]),
+  );
   return {
     id: row.id,
-    account: row.account ?? email.split("@")[0] ?? row.id,
+    account: row.account?.trim() || fallbackAccount,
     email,
-    name: row.display_name ?? email.split("@")[0] ?? "未命名账号",
+    name: row.display_name ?? (emailPrefix || fallbackAccount),
     role: row.role === "admin" || row.role === "editor" ? row.role : "viewer",
-    viewSystemIds: row.view_system_ids ?? [],
+    viewSystemIds,
     editSystemIds: row.edit_system_ids ?? [],
     status: row.status === "invited" ? "invited" : "active",
     updatedAt: row.updated_at ?? nowIso(),

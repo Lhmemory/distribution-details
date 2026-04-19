@@ -27,6 +27,19 @@ const editSchema = z.object({
 
 type FormShape = z.infer<typeof editSchema>;
 
+function fallbackAccount(initialValue?: UserAccount | null) {
+  const existing = initialValue?.account?.trim();
+  if (existing) return existing;
+
+  const email = initialValue?.email?.trim() ?? "";
+  if (email.includes("@")) {
+    const prefix = email.split("@")[0];
+    if (prefix) return prefix;
+  }
+
+  return initialValue?.id ? `user-${initialValue.id.slice(0, 8)}` : "";
+}
+
 export function UserDrawer({
   open,
   systems,
@@ -45,6 +58,8 @@ export function UserDrawer({
   onSubmit: (payload: { record: UserAccount; password?: string; isNew: boolean }) => Promise<void>;
 }) {
   const isEditing = Boolean(initialValue);
+  const accountPreset = fallbackAccount(initialValue);
+  const lockAccountField = isEditing && Boolean(accountPreset);
   const form = useForm<FormShape>({
     resolver: zodResolver(isEditing ? editSchema : createSchema),
     defaultValues: {
@@ -60,13 +75,13 @@ export function UserDrawer({
   useEffect(() => {
     form.reset({
       name: initialValue?.name ?? "",
-      account: initialValue?.account ?? "",
+      account: accountPreset,
       password: "",
       role: initialValue?.role ?? "viewer",
       viewSystemIds: initialValue?.viewSystemIds ?? [],
       editSystemIds: initialValue?.editSystemIds ?? [],
     });
-  }, [form, initialValue]);
+  }, [form, initialValue, accountPreset]);
 
   const systemChoices = systems.filter((item) => item.id !== "all");
   const values = form.watch();
@@ -124,7 +139,12 @@ export function UserDrawer({
             <input className="field-input" {...form.register("name")} />
           </FormField>
           <FormField label="账号" error={form.formState.errors.account?.message}>
-            <input className="field-input" {...form.register("account")} disabled={isEditing} />
+            <input
+              className="field-input"
+              {...form.register("account")}
+              disabled={lockAccountField}
+              placeholder={lockAccountField ? undefined : "请输入账号"}
+            />
           </FormField>
         </div>
 
