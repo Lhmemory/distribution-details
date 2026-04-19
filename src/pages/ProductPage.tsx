@@ -13,16 +13,16 @@ import { AppShell } from "../components/layout/AppShell";
 import { ProductDrawer } from "../components/products/ProductDrawer";
 
 const defaultColumns: ColumnConfig[] = [
-  { key: "barcode", label: "\u6761\u7801", enabled: true },
-  { key: "productCode", label: "\u5546\u54c1\u7f16\u7801", enabled: false },
-  { key: "productName", label: "\u5546\u54c1\u540d\u79f0", enabled: true },
-  { key: "archiveSupplyPrice", label: "\u5efa\u6863\u4f9b\u4ef7", enabled: true },
-  { key: "archiveSalePrice", label: "\u5efa\u6863\u552e\u4ef7", enabled: true },
-  { key: "promoSupplyPrice", label: "\u4fc3\u9500\u4f9b\u4ef7", enabled: true },
-  { key: "promoSalePrice", label: "\u4fc3\u9500\u552e\u4ef7", enabled: true },
-  { key: "category", label: "\u884c\u9500\u54c1\u7c7b", enabled: true },
-  { key: "updatedAt", label: "\u66f4\u65b0\u65f6\u95f4", enabled: true },
-  { key: "actions", label: "\u64cd\u4f5c", enabled: true },
+  { key: "barcode", label: "条码", enabled: true },
+  { key: "productCode", label: "商品编码", enabled: false },
+  { key: "productName", label: "商品名称", enabled: true },
+  { key: "archiveSupplyPrice", label: "建档供价", enabled: true },
+  { key: "archiveSalePrice", label: "建档售价", enabled: true },
+  { key: "promoSupplyPrice", label: "促销供价", enabled: true },
+  { key: "promoSalePrice", label: "促销售价", enabled: true },
+  { key: "category", label: "行销品类", enabled: true },
+  { key: "updatedAt", label: "更新时间", enabled: true },
+  { key: "actions", label: "操作", enabled: true },
 ];
 
 export function ProductPage() {
@@ -71,7 +71,7 @@ export function ProductPage() {
       [
         {
           key: "barcode",
-          header: "\u6761\u7801",
+          header: "条码",
           sortable: true,
           width: "15%",
           headerClassName: "whitespace-nowrap",
@@ -81,7 +81,7 @@ export function ProductPage() {
         },
         {
           key: "productCode",
-          header: "\u5546\u54c1\u7f16\u7801",
+          header: "商品编码",
           sortable: true,
           width: "11%",
           headerClassName: "whitespace-nowrap",
@@ -91,7 +91,7 @@ export function ProductPage() {
         },
         {
           key: "productName",
-          header: "\u5546\u54c1\u540d\u79f0",
+          header: "商品名称",
           sortable: true,
           width: "18%",
           sortValue: (row: ProductRecord) => row.productName,
@@ -99,7 +99,7 @@ export function ProductPage() {
         },
         {
           key: "archiveSupplyPrice",
-          header: "\u5efa\u6863\u4f9b\u4ef7",
+          header: "建档供价",
           sortable: true,
           width: "8%",
           headerClassName: "whitespace-nowrap",
@@ -109,7 +109,7 @@ export function ProductPage() {
         },
         {
           key: "archiveSalePrice",
-          header: "\u5efa\u6863\u552e\u4ef7",
+          header: "建档售价",
           sortable: true,
           width: "8%",
           headerClassName: "whitespace-nowrap",
@@ -119,7 +119,7 @@ export function ProductPage() {
         },
         {
           key: "promoSupplyPrice",
-          header: "\u4fc3\u9500\u4f9b\u4ef7",
+          header: "促销供价",
           sortable: true,
           width: "8%",
           headerClassName: "whitespace-nowrap",
@@ -129,7 +129,7 @@ export function ProductPage() {
         },
         {
           key: "promoSalePrice",
-          header: "\u4fc3\u9500\u552e\u4ef7",
+          header: "促销售价",
           sortable: true,
           width: "8%",
           headerClassName: "whitespace-nowrap",
@@ -139,7 +139,7 @@ export function ProductPage() {
         },
         {
           key: "category",
-          header: "\u884c\u9500\u54c1\u7c7b",
+          header: "行销品类",
           width: "8%",
           headerClassName: "whitespace-nowrap",
           cellClassName: "whitespace-nowrap text-center",
@@ -147,7 +147,7 @@ export function ProductPage() {
         },
         {
           key: "updatedAt",
-          header: "\u66f4\u65b0\u65f6\u95f4",
+          header: "更新时间",
           sortable: true,
           width: "14%",
           headerClassName: "whitespace-nowrap",
@@ -157,7 +157,7 @@ export function ProductPage() {
         },
         {
           key: "actions",
-          header: "\u64cd\u4f5c",
+          header: "操作",
           width: "12%",
           headerClassName: "whitespace-nowrap",
           cellClassName: "whitespace-nowrap",
@@ -171,11 +171,11 @@ export function ProductPage() {
                   setDrawerOpen(true);
                 }}
               >
-                \u7f16\u8f91
+                编辑
               </Button>
               <Button variant="danger" className="min-h-9 w-[92px] px-3" onClick={() => deleteProduct(row.id)}>
                 <Trash2 className="mr-1 h-4 w-4" />
-                \u5220\u9664
+                删除
               </Button>
             </div>
           ),
@@ -195,9 +195,9 @@ export function ProductPage() {
     try {
       const records = await parseProductTemplate(file, selectedSystemId, systems, authUser);
       records.forEach((record) => upsertProduct(record));
-      setUploadMessage(`\u5df2\u5bfc\u5165 ${records.length} \u4e2a\u5546\u54c1\u3002`);
+      setUploadMessage(`已导入 ${records.length} 个商品。`);
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "\u5546\u54c1\u6a21\u677f\u5bfc\u5165\u5931\u8d25\u3002");
+      setUploadError(error instanceof Error ? error.message : "商品模板导入失败。");
     } finally {
       event.target.value = "";
       setUploading(false);
@@ -206,42 +206,42 @@ export function ProductPage() {
 
   return (
     <AppShell
-      pageTitle="\u5546\u54c1\u4fe1\u606f"
-      pageDescription="\u6309\u7cfb\u7edf\u7ef4\u62a4\u5546\u54c1\u6863\u6848\u3001\u4ef7\u683c\u5b57\u6bb5\u4e0e\u6a21\u677f\u5bfc\u5165\u5bfc\u51fa\u3002"
+      pageTitle="商品信息"
+      pageDescription="按系统维护商品档案、价格字段与模板导入导出。"
       pageActions={
         <div className="flex flex-wrap gap-2">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
           <Button variant="secondary" onClick={downloadProductTemplate}>
             <Download className="mr-1 h-4 w-4" />
-            \u4e0b\u8f7d\u6a21\u677f
+            下载模板
           </Button>
           <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1 h-4 w-4" />
-            {uploading ? "\u5bfc\u5165\u4e2d..." : "\u4e0a\u4f20\u6a21\u677f"}
+            {uploading ? "导入中..." : "上传模板"}
           </Button>
           <Button
             variant="secondary"
             onClick={() =>
               exportRowsToXlsx(
                 filteredRows.map((row) => ({
-                  \u7cfb\u7edf: systems.find((item) => item.id === row.systemId)?.label ?? row.systemId,
-                  \u6761\u7801: row.barcode,
-                  \u5546\u54c1\u7f16\u7801: row.productCode,
-                  \u5546\u54c1\u540d\u79f0: row.productName,
-                  \u5efa\u6863\u4f9b\u4ef7: row.archiveSupplyPrice,
-                  \u5efa\u6863\u552e\u4ef7: row.archiveSalePrice,
-                  \u4fc3\u9500\u4f9b\u4ef7: row.promoSupplyPrice,
-                  \u4fc3\u9500\u552e\u4ef7: row.promoSalePrice,
-                  \u884c\u9500\u54c1\u7c7b: row.category ?? "",
-                  \u66f4\u65b0\u65f6\u95f4: row.updatedAt,
+                  系统: systems.find((item) => item.id === row.systemId)?.label ?? row.systemId,
+                  条码: row.barcode,
+                  商品编码: row.productCode,
+                  商品名称: row.productName,
+                  建档供价: row.archiveSupplyPrice,
+                  建档售价: row.archiveSalePrice,
+                  促销供价: row.promoSupplyPrice,
+                  促销售价: row.promoSalePrice,
+                  行销品类: row.category ?? "",
+                  更新时间: row.updatedAt,
                 })),
-                "\u5546\u54c1\u4fe1\u606f\u5bfc\u51fa",
-                "\u5546\u54c1\u4fe1\u606f",
+                "商品信息导出",
+                "商品信息",
               )
             }
           >
             <Download className="mr-1 h-4 w-4" />
-            \u5bfc\u51fa XLSX
+            导出 XLSX
           </Button>
           <Button
             onClick={() => {
@@ -250,7 +250,7 @@ export function ProductPage() {
             }}
           >
             <Plus className="mr-1 h-4 w-4" />
-            \u65b0\u589e\u5546\u54c1
+            新增商品
           </Button>
         </div>
       }
@@ -259,17 +259,17 @@ export function ProductPage() {
         <div className="mb-4 grid gap-3 xl:grid-cols-[1fr_280px]">
           <input
             className="field-input bg-white"
-            placeholder="\u641c\u7d22\u6761\u7801 / \u5546\u54c1\u7f16\u7801 / \u5546\u54c1\u540d\u79f0"
+            placeholder="搜索条码 / 商品编码 / 商品名称"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
           />
           <select className="field-input bg-white" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
-            <option value="all">\u5168\u90e8\u884c\u9500\u54c1\u7c7b</option>
-            <option value="\u6218\u7565">\u6218\u7565</option>
-            <option value="\u76c8\u5229">\u76c8\u5229</option>
-            <option value="\u6e20\u9053">\u6e20\u9053</option>
-            <option value="\u884c\u60c5">\u884c\u60c5</option>
-            <option value="\u7cbe\u54c1\u8c03\u5473">\u7cbe\u54c1\u8c03\u5473</option>
+            <option value="all">全部行销品类</option>
+            <option value="战略">战略</option>
+            <option value="盈利">盈利</option>
+            <option value="渠道">渠道</option>
+            <option value="行情">行情</option>
+            <option value="精品调味">精品调味</option>
           </select>
         </div>
 
@@ -281,8 +281,8 @@ export function ProductPage() {
           >
             <div className="flex items-center gap-2 text-sm font-medium text-text">
               <SlidersHorizontal className="h-4 w-4 text-primary" />
-              \u5217\u914d\u7f6e
-              <span className="text-xs font-normal text-muted">\u5df2\u542f\u7528 {columns.filter((item) => item.enabled).length} \u5217</span>
+              列配置
+              <span className="text-xs font-normal text-muted">已启用 {columns.filter((item) => item.enabled).length} 列</span>
             </div>
             {columnsExpanded ? <ChevronUp className="h-4 w-4 text-muted" /> : <ChevronDown className="h-4 w-4 text-muted" />}
           </button>
@@ -308,8 +308,8 @@ export function ProductPage() {
         </div>
 
         <div className="mb-4 flex items-center gap-2">
-          <Badge tone="primary">\u5df2\u542f\u7528\u6a21\u677f\u5bfc\u5165</Badge>
-          <span className="text-sm text-muted">\u6a21\u677f\u548c\u5bfc\u51fa\u90fd\u5df2\u5e26\u7cfb\u7edf\u5217\uff1b\u672a\u586b\u5199\u7cfb\u7edf\u65f6\uff0c\u9ed8\u8ba4\u5bfc\u5165\u5230\u5f53\u524d\u5df2\u9009\u7cfb\u7edf\u3002</span>
+          <Badge tone="primary">已启用模板导入</Badge>
+          <span className="text-sm text-muted">模板和导出都已带系统列；未填写系统时，默认导入到当前已选系统。</span>
         </div>
 
         {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
@@ -320,9 +320,9 @@ export function ProductPage() {
           columns={tableColumns}
           status={status}
           pageSize={20}
-          paginationSummary={`\u5f53\u524d\u7cfb\u7edf\u5171 ${scopedTotalCount} \u4e2a\u5546\u54c1`}
-          emptyTitle="\u6682\u65e0\u5546\u54c1\u4fe1\u606f"
-          emptyDescription="\u5f53\u524d\u7cfb\u7edf\u6216\u7b5b\u9009\u6761\u4ef6\u4e0b\u6ca1\u6709\u5339\u914d\u5546\u54c1\uff0c\u53ef\u4ee5\u5148\u65b0\u589e\u6216\u4e0a\u4f20\u6a21\u677f\u3002"
+          paginationSummary={`当前系统共 ${scopedTotalCount} 个商品`}
+          emptyTitle="暂无商品信息"
+          emptyDescription="当前系统或筛选条件下没有匹配商品，可以先新增或上传模板。"
         />
       </section>
 
