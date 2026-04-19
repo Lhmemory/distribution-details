@@ -3,6 +3,7 @@ export type PermissionLevel = "view" | "edit";
 export type TrendDirection = "up" | "down" | "flat";
 export type TimeGranularity = "month" | "quarter" | "year" | "custom";
 export type AsyncStatus = "idle" | "loading" | "error" | "ready";
+export type AuthMode = "supabase" | "demo" | "setup";
 
 export interface SystemItem {
   id: string;
@@ -132,4 +133,7 @@ export interface AppStateShape {
   changeLogs: ChangeLogEntry[];
   alerts: DashboardAlert[];
   authUser: UserAccount | null;
+  authMode: AuthMode;
+  bootstrapStatus: AsyncStatus;
+  bootstrapMessage?: string;
 }
