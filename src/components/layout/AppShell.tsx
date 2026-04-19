@@ -25,8 +25,8 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-canvas">
       <Sidebar mobileOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-      <div className="flex-1 px-4 py-4 lg:px-6">
-        <div className="soft-panel mb-4 flex items-center justify-between px-4 py-3 lg:hidden">
+      <div className="min-w-0 flex-1 px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
+        <div className="soft-panel mb-4 flex items-center justify-between px-3 py-3 sm:px-4 lg:hidden">
           <div>
             <p className="text-base font-semibold text-text">{pageTitle}</p>
             <p className="text-xs text-muted">{authUser?.name ?? "未登录"}</p>
@@ -44,12 +44,12 @@ export function AppShell({
           </div>
         ) : null}
 
-        <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <h1 className="text-[1.75rem] font-semibold text-text">{pageTitle}</h1>
+        <div className="mb-5 flex flex-col gap-3 sm:gap-4 xl:mb-6 xl:flex-row xl:items-end xl:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-[1.9rem] font-semibold leading-tight text-text sm:text-[2.1rem]">{pageTitle}</h1>
             {pageDescription ? <p className="mt-1 max-w-3xl text-sm text-muted">{pageDescription}</p> : null}
           </div>
-          {pageActions}
+          {pageActions ? <div className="flex w-full flex-wrap gap-2 xl:w-auto xl:justify-end">{pageActions}</div> : null}
         </div>
         {children}
       </div>
