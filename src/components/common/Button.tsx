@@ -23,7 +23,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        "inline-flex min-h-10 items-center justify-center rounded-mono px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex min-h-10 items-center justify-center rounded-mono px-4 text-sm font-medium whitespace-nowrap transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50",
         variants[variant],
         className,
       )}
