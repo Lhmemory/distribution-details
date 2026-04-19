@@ -2,6 +2,7 @@ node_modules/
 dist/
 .vercel/
 .netlify/
+.env
 .DS_Store
 *.log
 *.tsbuildinfo
