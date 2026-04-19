@@ -15,6 +15,7 @@ import {
   fetchCurrentUserProfile,
   getSavedSession,
   loadCloudWorkspace,
+  manageUserAccount,
   persistChangeLog,
   persistPriceGuides,
   persistProduct,
@@ -48,7 +49,10 @@ interface AppContextValue extends AppStateShape {
   upsertProduct: (record: ProductRecord) => void;
   deleteProduct: (id: string) => void;
   upsertStore: (record: StoreRecord) => void;
-  upsertUser: (record: UserAccount) => void;
+  upsertUser: (
+    record: UserAccount,
+    options?: { password?: string; isNew?: boolean },
+  ) => Promise<{ ok: boolean; message?: string }>;
   saveSalesRecord: (record: SalesPeriodRecord, operator: string) => void;
   importPriceGuides: (records: PriceGuideRecord[], sourceFileName: string, systemId: string) => void;
   appendChangeLog: (entry: Omit<ChangeLogEntry, "id" | "timestamp">) => void;
@@ -327,9 +331,34 @@ export function AppProvider({ children }: PropsWithChildren) {
     });
   }
 
-  function upsertUser(record: UserAccount) {
+  async function upsertUser(record: UserAccount, options?: { password?: string; isNew?: boolean }) {
     const exists = users.some((item) => item.id === record.id);
-    setUsers((current) => (exists ? current.map((item) => (item.id === record.id ? record : item)) : [record, ...current]));
+    if (session) {
+      try {
+        await manageUserAccount(
+          {
+            userId: options?.isNew ? undefined : record.id,
+            account: record.account,
+            name: record.name,
+            role: record.role,
+            viewSystemIds: record.viewSystemIds,
+            editSystemIds: record.editSystemIds,
+            password: options?.password,
+          },
+          session.access_token,
+        );
+
+        await refreshCloudData(session);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "账号保存失败";
+        setBootstrapMessage(message);
+        return { ok: false, message };
+      }
+    } else {
+      setUsers((current) =>
+        exists ? current.map((item) => (item.id === record.id ? record : item)) : [record, ...current],
+      );
+    }
 
     appendChangeLog({
       entity: "user",
@@ -338,6 +367,8 @@ export function AppProvider({ children }: PropsWithChildren) {
       description: `${record.name} (${record.role}) 权限已保存`,
       operator: authUser?.name ?? "系统",
     });
+
+    return { ok: true };
   }
 
   function saveSalesRecord(record: SalesPeriodRecord, operator: string) {

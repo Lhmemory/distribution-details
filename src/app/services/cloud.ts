@@ -139,8 +139,33 @@ export interface CloudWorkspace {
   alerts: DashboardAlert[];
 }
 
+export interface ManagedUserPayload {
+  userId?: string;
+  account: string;
+  name: string;
+  role: UserAccount["role"];
+  viewSystemIds: string[];
+  editSystemIds: string[];
+  password?: string;
+}
+
 function nowIso() {
   return new Date().toISOString();
+}
+
+function toHex(bytes: Uint8Array) {
+  return Array.from(bytes)
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function buildInternalLoginEmail(account: string) {
+  const normalized = account.trim();
+  if (!normalized) {
+    throw new Error("账号不能为空");
+  }
+
+  return `acct-${toHex(new TextEncoder().encode(normalized.toLowerCase()))}@scka-login.invalid`;
 }
 
 function createHeaders(accessToken?: string, extra?: Record<string, string>) {
@@ -458,11 +483,12 @@ export function clearSavedSession() {
 }
 
 export async function signInWithPassword(email: string, password: string) {
+  const identity = email.includes("@") ? email.trim() : buildInternalLoginEmail(email);
   const payload = (await fetchSupabase(
     "/auth/v1/token?grant_type=password",
     {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: identity, password }),
     },
   )) as SupabaseSession;
 
@@ -533,4 +559,23 @@ export async function persistPriceGuides(records: PriceGuideRecord[], accessToke
 
 export async function persistChangeLog(record: ChangeLogEntry, accessToken: string) {
   await upsertTable("change_logs", [toChangeLogRow(record)], accessToken);
+}
+
+export async function manageUserAccount(payload: ManagedUserPayload, accessToken: string) {
+  const response = await fetch(`${appConfig.supabaseUrl}/functions/v1/admin-create-user`, {
+    method: "POST",
+    headers: createHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const result = await readJsonSafe(response);
+    const message =
+      typeof result === "object" && result && "error" in result
+        ? String((result as { error: string }).error)
+        : `账号保存失败 (${response.status})`;
+    throw new Error(message);
+  }
+
+  return readJsonSafe(response);
 }

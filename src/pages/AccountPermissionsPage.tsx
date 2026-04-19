@@ -15,6 +15,8 @@ export function AccountPermissionsPage() {
   const { users, systems, upsertUser, authUser } = useAppContext();
   const [activeUser, setActiveUser] = useState<UserAccount | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const systemLabelMap = useMemo(
     () => new Map(systems.map((item) => [item.id, item.label])),
@@ -25,8 +27,15 @@ export function AccountPermissionsPage() {
     () => [
       { key: "name", header: "姓名", sortable: true, sortValue: (row) => row.name, render: (row) => row.name },
       { key: "account", header: "账号", render: (row) => row.account },
-      { key: "email", header: "邮箱", render: (row) => row.email },
-      { key: "role", header: "角色", render: (row) => <Badge tone={row.role === "admin" ? "primary" : row.role === "editor" ? "success" : "neutral"}>{cnRoleLabel(row.role)}</Badge> },
+      {
+        key: "role",
+        header: "角色",
+        render: (row) => (
+          <Badge tone={row.role === "admin" ? "primary" : row.role === "editor" ? "success" : "neutral"}>
+            {cnRoleLabel(row.role)}
+          </Badge>
+        ),
+      },
       {
         key: "viewSystems",
         header: "查看权限",
@@ -40,7 +49,13 @@ export function AccountPermissionsPage() {
             ? "只读"
             : row.editSystemIds.map((id) => systemLabelMap.get(id)).filter(Boolean).join("、") || "未分配",
       },
-      { key: "updatedAt", header: "更新时间", sortable: true, sortValue: (row) => row.updatedAt, render: (row) => row.updatedAt },
+      {
+        key: "updatedAt",
+        header: "更新时间",
+        sortable: true,
+        sortValue: (row) => row.updatedAt,
+        render: (row) => row.updatedAt,
+      },
       {
         key: "actions",
         header: "操作",
@@ -51,6 +66,7 @@ export function AccountPermissionsPage() {
             disabled={!canManageAccounts(authUser)}
             onClick={() => {
               setActiveUser(row);
+              setSubmitError("");
               setDrawerOpen(true);
             }}
           >
@@ -65,7 +81,7 @@ export function AccountPermissionsPage() {
   return (
     <AppShell
       pageTitle="账号权限"
-      pageDescription="admin 可创建账号、分配角色、分配系统查看权限和编辑权限。viewer 只读，editor 可修改业务数据。"
+      pageDescription="admin 可直接创建账号、设置密码、分配系统查看权限和编辑权限。viewer 只读，editor 可修改业务数据。"
       pageActions={
         <div className="flex flex-wrap gap-2">
           <Button
@@ -75,7 +91,6 @@ export function AccountPermissionsPage() {
                 users.map((row) => ({
                   姓名: row.name,
                   账号: row.account,
-                  邮箱: row.email,
                   角色: cnRoleLabel(row.role),
                   查看权限: row.viewSystemIds.map((id) => systemLabelMap.get(id)).filter(Boolean).join("、"),
                   编辑权限:
@@ -96,6 +111,7 @@ export function AccountPermissionsPage() {
             <Button
               onClick={() => {
                 setActiveUser(null);
+                setSubmitError("");
                 setDrawerOpen(true);
               }}
             >
@@ -111,7 +127,7 @@ export function AccountPermissionsPage() {
           rows={users}
           columns={columns}
           emptyTitle="暂无账号"
-          emptyDescription="管理员可新建账号，并分配系统查看权限和编辑权限。"
+          emptyDescription="管理员可直接新增账号，并在网页内设置初始密码和权限。"
         />
       </section>
 
@@ -119,9 +135,20 @@ export function AccountPermissionsPage() {
         open={drawerOpen}
         systems={systems}
         initialValue={activeUser}
+        submitting={submitting}
+        submitError={submitError}
         onClose={() => setDrawerOpen(false)}
-        onSubmit={(record) => {
-          upsertUser(record);
+        onSubmit={async ({ record, password, isNew }) => {
+          setSubmitting(true);
+          setSubmitError("");
+          const result = await upsertUser(record, { password, isNew });
+          setSubmitting(false);
+
+          if (!result.ok) {
+            setSubmitError(result.message ?? "账号保存失败");
+            return;
+          }
+
           setDrawerOpen(false);
         }}
       />

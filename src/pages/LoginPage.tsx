@@ -40,14 +40,16 @@ export function LoginPage() {
               <p className="text-sm text-muted">企业内部资料管理系统</p>
             </div>
           </div>
+
           <div className="space-y-6">
             <div className="tonal-panel p-6">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Access Model</p>
               <h2 className="text-2xl font-semibold text-text">Code Public, Data Private</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
-                页面代码可以公开托管，但商品、门店、价格、销量这些业务数据不再默认写在前端里，而是登录后再从云端读取。
+                页面代码可以公开托管，但商品、门店、价格、销量这些业务数据不会打包到前端，而是登录后再从云端读取。
               </p>
             </div>
+
             <div className="grid gap-4 md:grid-cols-2">
               {[
                 "登录后才加载商品、门店、价格指引和销量数据",
@@ -71,7 +73,7 @@ export function LoginPage() {
             <h1 className="text-2xl font-semibold text-text">登录系统</h1>
             <p className="mt-2 text-sm text-muted">
               {authMode === "supabase"
-                ? "使用已开通的邮箱账号登录，登录成功后再从云端读取业务数据。"
+                ? "支持直接输入账号或邮箱登录，登录成功后再从云端读取业务数据。"
                 : authMode === "demo"
                   ? "当前是演示模式，仅用于本地体验页面。"
                   : "当前站点未完成云端配置，已关闭演示登录。"}
@@ -80,14 +82,14 @@ export function LoginPage() {
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             <label className="block">
-              <span className="field-label">{authMode === "supabase" ? "邮箱" : "邮箱 / 账号"}</span>
+              <span className="field-label">{authMode === "supabase" ? "账号 / 邮箱" : "邮箱 / 账号"}</span>
               <div className="relative">
                 <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input
                   className="field-input pl-10"
                   value={identity}
                   onChange={(event) => setIdentity(event.target.value)}
-                  placeholder={authMode === "supabase" ? "name@company.com" : "邮箱或账号"}
+                  placeholder={authMode === "supabase" ? "输入账号或邮箱" : "邮箱或账号"}
                 />
               </div>
             </label>
@@ -116,7 +118,7 @@ export function LoginPage() {
 
           <div className="mt-6 rounded-mono bg-surface-low p-4 text-sm text-muted">
             {authMode === "supabase" ? (
-              <>上线建议：登录账号从 Supabase Auth 创建，业务数据只放数据库，不再写进前端源码。</>
+              <>上线模式下可由管理员在网页内直接创建账号，业务数据只放数据库，不写进前端源码。</>
             ) : authMode === "demo" ? (
               <>
                 演示环境说明：管理员账号可直接使用当前默认值；其他演示账号密码统一为
