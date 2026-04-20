@@ -252,9 +252,10 @@ function mapProfileRow(row: ProfileRow): UserAccount {
     rawAccount && !isFallbackAccount(rawAccount) ? rawAccount : "";
   const fallbackAccount =
     accountFromRow || decodedAccount || emailPrefix || `user-${row.id.slice(0, 8)}`;
-  const viewSystemIds = Array.from(
-    new Set([...(row.view_system_ids ?? []), ...(row.allowed_systems ?? [])]),
+  const editSystemIds = Array.from(
+    new Set([...(row.edit_system_ids ?? []), ...(row.allowed_systems ?? [])]),
   );
+  const viewSystemIds = Array.from(new Set([...(row.view_system_ids ?? []), ...editSystemIds]));
   return {
     id: row.id,
     account: fallbackAccount,
@@ -262,7 +263,7 @@ function mapProfileRow(row: ProfileRow): UserAccount {
     name: row.display_name ?? (emailPrefix || fallbackAccount),
     role: row.role === "admin" || row.role === "editor" ? row.role : "viewer",
     viewSystemIds,
-    editSystemIds: row.edit_system_ids ?? [],
+    editSystemIds,
     status: row.status === "invited" ? "invited" : "active",
     updatedAt: row.updated_at ?? nowIso(),
   };
