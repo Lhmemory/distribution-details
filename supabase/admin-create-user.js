@@ -126,7 +126,10 @@ Deno.serve(async (req) => {
       role,
       view_system_ids: viewSystemIds,
       edit_system_ids: role === "viewer" ? [] : editSystemIds,
-      allowed_systems: viewSystemIds,
+      allowed_systems: encodeLegacyPermissions(
+        viewSystemIds,
+        role === "viewer" ? [] : editSystemIds,
+      ),
       status: "active",
       updated_at: new Date().toISOString(),
     };
@@ -169,6 +172,12 @@ function findMissingField(message) {
     return quote[1];
   }
   return null;
+}
+
+function encodeLegacyPermissions(viewSystemIds, editSystemIds) {
+  const view = Array.from(new Set((viewSystemIds ?? []).filter(Boolean))).map((id) => `v:${id}`);
+  const edit = Array.from(new Set((editSystemIds ?? []).filter(Boolean))).map((id) => `e:${id}`);
+  return [...view, ...edit];
 }
 
 function buildInternalLoginEmail(account) {
