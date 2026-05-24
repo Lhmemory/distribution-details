@@ -8,6 +8,7 @@ import {
   SystemItem,
   UserAccount,
 } from "../types";
+import { normalizeSystemRecord } from "../utils/systemInfo";
 import importedProductsData from "./importedProducts.json";
 import importedStoresData from "./importedStores.json";
 
@@ -22,12 +23,15 @@ export const baseSystems: SystemItem[] = [
   "天虹",
   "华润",
   "麦德龙",
-].map((label, index) => ({
-  id: index === 0 ? "all" : `sys-${index}`,
-  label,
-  editable: index === 0,
-  createdAt: "2026-04-17 09:00",
-}));
+].map((label, index) =>
+  normalizeSystemRecord({
+    id: index === 0 ? "all" : `sys-${index}`,
+    label,
+    editable: index !== 0,
+    createdAt: "2026-04-17 09:00",
+    cooperationStatus: index === 0 ? undefined : "资料待补",
+  }),
+);
 
 export const mockUsers: UserAccount[] = [
   {

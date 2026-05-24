@@ -5,10 +5,12 @@ import {
   ProductRecord,
   SalesPeriodRecord,
   StoreRecord,
+  SystemCooperationStatus,
   SystemItem,
   UserAccount,
 } from "../types";
 import { appConfig, isSupabaseConfigured } from "../config/env";
+import { normalizeSystemRecord } from "../utils/systemInfo";
 
 const SESSION_STORAGE_KEY = "distribution-details.supabase-session";
 
@@ -38,11 +40,27 @@ interface ProfileRow {
   updated_at?: string | null;
 }
 
+interface DecodedLegacyPermissions {
+  view: string[];
+  edit: string[];
+  hasScopedFormat: boolean;
+}
+
 interface SystemRow {
   id: string;
   label: string;
   editable?: boolean | null;
   created_at?: string | null;
+  system_type?: string | null;
+  region?: string | null;
+  cooperation_status?: string | null;
+  business_scope?: string | null;
+  key_categories?: string | null;
+  settlement_notes?: string | null;
+  completeness_score?: number | null;
+  updated_at?: string | null;
+  next_review_date?: string | null;
+  notes?: string | null;
 }
 
 interface ProductRow {
@@ -195,6 +213,25 @@ function isFallbackAccount(account: string) {
   return /^user-[0-9a-f]{8}$/i.test(account.trim());
 }
 
+function decodeLegacyPermissions(raw: string[] | null | undefined): DecodedLegacyPermissions {
+  const values = (raw ?? []).filter((item) => Boolean(item)).map((item) => item.trim());
+  const hasScopedFormat = values.some((item) => item.startsWith("v:") || item.startsWith("e:"));
+  if (!hasScopedFormat) {
+    return { view: values, edit: [], hasScopedFormat: false };
+  }
+
+  const view = values
+    .filter((item) => item.startsWith("v:"))
+    .map((item) => item.slice(2))
+    .filter((item) => Boolean(item));
+  const edit = values
+    .filter((item) => item.startsWith("e:"))
+    .map((item) => item.slice(2))
+    .filter((item) => Boolean(item));
+
+  return { view, edit, hasScopedFormat: true };
+}
+
 function createHeaders(accessToken?: string, extra?: Record<string, string>) {
   const headers: Record<string, string> = {
     apikey: appConfig.supabaseAnonKey,
@@ -252,10 +289,19 @@ function mapProfileRow(row: ProfileRow): UserAccount {
     rawAccount && !isFallbackAccount(rawAccount) ? rawAccount : "";
   const fallbackAccount =
     accountFromRow || decodedAccount || emailPrefix || `user-${row.id.slice(0, 8)}`;
-  const editSystemIds = Array.from(
-    new Set([...(row.edit_system_ids ?? []), ...(row.allowed_systems ?? [])]),
-  );
-  const viewSystemIds = Array.from(new Set([...(row.view_system_ids ?? []), ...editSystemIds]));
+  const decoded = decodeLegacyPermissions(row.allowed_systems);
+  const viewFromColumns = row.view_system_ids ?? [];
+  const editFromColumns = row.edit_system_ids ?? [];
+
+  const viewSeed = decoded.hasScopedFormat
+    ? [...viewFromColumns, ...decoded.view]
+    : [...viewFromColumns, ...decoded.view];
+  const editSeed = decoded.hasScopedFormat
+    ? [...editFromColumns, ...decoded.edit]
+    : [...editFromColumns, ...decoded.view];
+
+  const viewSystemIds = Array.from(new Set([...viewSeed, ...editSeed]));
+  const editSystemIds = Array.from(new Set(editSeed));
   return {
     id: row.id,
     account: fallbackAccount,
@@ -270,12 +316,26 @@ function mapProfileRow(row: ProfileRow): UserAccount {
 }
 
 function mapSystemRow(row: SystemRow): SystemItem {
-  return {
+  const status = row.cooperation_status;
+  return normalizeSystemRecord({
     id: row.id,
     label: row.label,
     editable: Boolean(row.editable ?? true),
     createdAt: row.created_at ?? nowIso(),
-  };
+    systemType: row.system_type ?? undefined,
+    region: row.region ?? undefined,
+    cooperationStatus:
+      status === "合作中" || status === "待开发" || status === "暂停合作" || status === "已终止" || status === "资料待补"
+        ? (status as SystemCooperationStatus)
+        : undefined,
+    businessScope: row.business_scope ?? undefined,
+    keyCategories: row.key_categories ?? undefined,
+    settlementNotes: row.settlement_notes ?? undefined,
+    completeness: row.completeness_score ?? undefined,
+    updatedAt: row.updated_at ?? undefined,
+    nextReviewDate: row.next_review_date ?? undefined,
+    notes: row.notes ?? undefined,
+  });
 }
 
 function mapProductRow(row: ProductRow): ProductRecord {
@@ -383,11 +443,22 @@ function mapAlertRow(row: AlertRow): DashboardAlert {
 }
 
 function toSystemRow(record: SystemItem): SystemRow {
+  const normalized = normalizeSystemRecord(record);
   return {
-    id: record.id,
-    label: record.label,
-    editable: record.editable,
-    created_at: record.createdAt,
+    id: normalized.id,
+    label: normalized.label,
+    editable: normalized.editable,
+    created_at: normalized.createdAt,
+    system_type: normalized.systemType ?? null,
+    region: normalized.region ?? null,
+    cooperation_status: normalized.cooperationStatus ?? null,
+    business_scope: normalized.businessScope ?? null,
+    key_categories: normalized.keyCategories ?? null,
+    settlement_notes: normalized.settlementNotes ?? null,
+    completeness_score: normalized.completeness ?? 0,
+    updated_at: normalized.updatedAt ?? null,
+    next_review_date: normalized.nextReviewDate ?? null,
+    notes: normalized.notes ?? null,
   };
 }
 
@@ -560,7 +631,10 @@ export async function loadCloudWorkspace(accessToken: string): Promise<CloudWork
   ]);
 
   return {
-    systems: [{ id: "all", label: "全部", editable: true, createdAt: nowIso() }, ...systems.map(mapSystemRow)],
+    systems: [
+      normalizeSystemRecord({ id: "all", label: "全部", editable: true, createdAt: nowIso() }),
+      ...systems.map(mapSystemRow),
+    ],
     users: users.map(mapProfileRow),
     products: products.map(mapProductRow),
     stores: stores.map(mapStoreRow),
@@ -573,6 +647,10 @@ export async function loadCloudWorkspace(accessToken: string): Promise<CloudWork
 
 export async function persistSystem(record: SystemItem, accessToken: string) {
   await upsertTable("systems", [toSystemRow(record)], accessToken);
+}
+
+export async function removeSystem(id: string, accessToken: string) {
+  await deleteTableRow("systems", id, accessToken);
 }
 
 export async function persistProduct(record: ProductRecord, accessToken: string) {

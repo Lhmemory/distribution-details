@@ -4,12 +4,23 @@ export type TrendDirection = "up" | "down" | "flat";
 export type TimeGranularity = "month" | "quarter" | "year" | "custom";
 export type AsyncStatus = "idle" | "loading" | "error" | "ready";
 export type AuthMode = "supabase" | "demo" | "setup";
+export type SystemCooperationStatus = "合作中" | "待开发" | "暂停合作" | "已终止" | "资料待补";
 
 export interface SystemItem {
   id: string;
   label: string;
   editable: boolean;
   createdAt: string;
+  systemType?: string;
+  region?: string;
+  cooperationStatus?: SystemCooperationStatus;
+  businessScope?: string;
+  keyCategories?: string;
+  settlementNotes?: string;
+  completeness?: number;
+  updatedAt?: string;
+  nextReviewDate?: string;
+  notes?: string;
 }
 
 export interface UserAccount {

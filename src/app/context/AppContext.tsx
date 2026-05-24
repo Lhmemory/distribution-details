@@ -23,6 +23,7 @@ import {
   persistStore,
   persistSystem,
   removeProduct,
+  removeSystem,
   saveSession,
   signInWithPassword,
   SupabaseSession,
@@ -39,6 +40,7 @@ import {
 } from "../types";
 import { nowLabel } from "../utils/format";
 import { getVisibleSystems } from "../utils/permissions";
+import { normalizeSystemLabel, normalizeSystemRecord } from "../utils/systemInfo";
 
 interface AppContextValue extends AppStateShape {
   setSelectedSystemId: (systemId: string) => void;
@@ -46,6 +48,8 @@ interface AppContextValue extends AppStateShape {
   logout: () => void;
   refreshCloudData: () => Promise<void>;
   addSystem: (label: string) => void;
+  upsertSystem: (record: SystemItem) => void;
+  deleteSystem: (id: string) => void;
   upsertProduct: (record: ProductRecord) => void;
   deleteProduct: (id: string) => void;
   upsertStore: (record: StoreRecord) => void;
@@ -59,6 +63,7 @@ interface AppContextValue extends AppStateShape {
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
+const LOCAL_SYSTEMS_STORAGE_KEY = "distribution-details.systems";
 
 function createEmptyBusinessState() {
   return {
@@ -71,10 +76,27 @@ function createEmptyBusinessState() {
   };
 }
 
+function loadSavedLocalSystems() {
+  if (isSupabaseConfigured() || typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_SYSTEMS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    const records = parsed
+      .filter((item): item is SystemItem => Boolean(item?.id && item?.label))
+      .map((item) => normalizeSystemRecord(item));
+    return records.some((item) => item.id === "all") ? records : baseSystems;
+  } catch {
+    return null;
+  }
+}
+
 export function AppProvider({ children }: PropsWithChildren) {
   const authMode = getAuthMode();
   const initialBusinessState = createEmptyBusinessState();
-  const [systems, setSystems] = useState<SystemItem[]>(baseSystems);
+  const [systems, setSystems] = useState<SystemItem[]>(() => loadSavedLocalSystems() ?? baseSystems);
   const [selectedSystemId, setSelectedSystemId] = useState("all");
   const [users, setUsers] = useState<UserAccount[]>(appConfig.allowDemoLogin ? mockUsers : []);
   const [products, setProducts] = useState<ProductRecord[]>(initialBusinessState.products);
@@ -91,6 +113,11 @@ export function AppProvider({ children }: PropsWithChildren) {
     authMode === "setup" ? "当前站点已关闭演示数据，请先配置 Supabase 才能登录和查看业务数据。" : undefined,
   );
   const [session, setSession] = useState<SupabaseSession | null>(null);
+
+  useEffect(() => {
+    if (isSupabaseConfigured()) return;
+    window.localStorage.setItem(LOCAL_SYSTEMS_STORAGE_KEY, JSON.stringify(systems));
+  }, [systems]);
 
   useEffect(() => {
     const visibleSystems = getVisibleSystems(authUser, systems);
@@ -248,13 +275,20 @@ export function AppProvider({ children }: PropsWithChildren) {
   function addSystem(label: string) {
     const trimmed = label.trim();
     if (!trimmed) return;
+    const exists = systems.some((item) => normalizeSystemLabel(item.label) === normalizeSystemLabel(trimmed));
+    if (exists) {
+      setBootstrapMessage(`系统 "${trimmed}" 已存在`);
+      return;
+    }
 
-    const record: SystemItem = {
+    const record = normalizeSystemRecord({
       id: `sys-${Date.now()}`,
       label: trimmed,
       editable: true,
       createdAt: nowLabel(),
-    };
+      cooperationStatus: "资料待补",
+      updatedAt: new Date().toISOString().slice(0, 10),
+    });
 
     setSystems((current) => [...current, record]);
     if (session) {
@@ -268,6 +302,74 @@ export function AppProvider({ children }: PropsWithChildren) {
       action: "create",
       title: "新增系统",
       description: `新增系统标签：${trimmed}`,
+      operator: authUser?.name ?? "系统",
+    });
+  }
+
+  function upsertSystem(record: SystemItem) {
+    if (record.id === "all") return;
+
+    const normalized = normalizeSystemRecord(record);
+    const exists = systems.some((item) => item.id === normalized.id);
+    const duplicatedLabel = systems.some(
+      (item) => item.id !== normalized.id && normalizeSystemLabel(item.label) === normalizeSystemLabel(normalized.label),
+    );
+
+    if (!normalized.label || duplicatedLabel) {
+      setBootstrapMessage(duplicatedLabel ? `系统 "${normalized.label}" 已存在` : "系统名称不能为空");
+      return;
+    }
+
+    setSystems((current) =>
+      exists
+        ? current.map((item) => (item.id === normalized.id ? normalized : item))
+        : [...current, normalized],
+    );
+
+    if (session) {
+      void persistSystem(normalized, session.access_token).catch((error) => {
+        setBootstrapMessage(error instanceof Error ? error.message : "系统基本信息保存失败");
+      });
+    }
+
+    appendChangeLog({
+      entity: "system",
+      action: exists ? "update" : "create",
+      title: exists ? "更新系统基本信息" : "新增系统",
+      description: `${normalized.label} 已保存`,
+      systemId: normalized.id,
+      operator: authUser?.name ?? "系统",
+    });
+  }
+
+  function deleteSystem(id: string) {
+    const target = systems.find((item) => item.id === id);
+    if (!target || id === "all") return;
+
+    setSystems((current) => current.filter((item) => item.id !== id));
+    setUsers((current) =>
+      current.map((user) => ({
+        ...user,
+        viewSystemIds: user.viewSystemIds.filter((systemId) => systemId !== id),
+        editSystemIds: user.editSystemIds.filter((systemId) => systemId !== id),
+      })),
+    );
+    if (selectedSystemId === id) {
+      setSelectedSystemId("all");
+    }
+
+    if (session) {
+      void removeSystem(id, session.access_token).catch((error) => {
+        setBootstrapMessage(error instanceof Error ? error.message : "系统删除失败");
+      });
+    }
+
+    appendChangeLog({
+      entity: "system",
+      action: "delete",
+      title: "删除系统",
+      description: `${target.label} 已删除`,
+      systemId: id,
       operator: authUser?.name ?? "系统",
     });
   }
@@ -433,6 +535,8 @@ export function AppProvider({ children }: PropsWithChildren) {
       logout,
       refreshCloudData,
       addSystem,
+      upsertSystem,
+      deleteSystem,
       upsertProduct,
       deleteProduct,
       upsertStore,

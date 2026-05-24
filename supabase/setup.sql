@@ -7,6 +7,18 @@ create table if not exists public.systems (
   created_at timestamptz not null default now()
 );
 
+alter table public.systems
+  add column if not exists system_type text,
+  add column if not exists region text,
+  add column if not exists cooperation_status text,
+  add column if not exists business_scope text,
+  add column if not exists key_categories text,
+  add column if not exists settlement_notes text,
+  add column if not exists completeness_score integer not null default 0,
+  add column if not exists updated_at text,
+  add column if not exists next_review_date text,
+  add column if not exists notes text;
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   account text,

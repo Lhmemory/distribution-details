@@ -19,7 +19,7 @@ const navItems = [
   { to: "/price-guides", label: "价格指引", icon: FileSpreadsheet },
   { to: "/stores", label: "门店信息", icon: Store },
   { to: "/sales", label: "销售数据", icon: ChartColumn },
-  { to: "/system-management", label: "系统管理", icon: Settings2 },
+  { to: "/system-management", label: "系统基本信息", icon: Settings2 },
   { to: "/account-permissions", label: "账号权限", icon: Users },
 ];
 
