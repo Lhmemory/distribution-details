@@ -169,3 +169,26 @@ git push origin main
 推送后 GitHub Actions 会运行 `.github/workflows/deploy-pages.yml` 并发布到 GitHub Pages。
 
 真正多用户可用还需要先完成 Supabase 初始化和首个管理员账号创建；否则生产站点只能打开登录页，无法完成真实登录。
+
+## 7. 当前 Supabase 状态
+
+已发现同名 Supabase 项目：
+
+```text
+project_id/ref: efpoftpnyhetkccjjpov
+project name: distribution-details
+region: ap-northeast-1
+status: INACTIVE
+url: https://efpoftpnyhetkccjjpov.supabase.co
+```
+
+该项目当前未激活，暂时无法读取 publishable key，也不能完成数据库迁移、Edge Function 部署、首个管理员创建和真实登录验证。
+
+上线前需要先确认是否恢复这个项目。恢复后继续执行：
+
+1. 读取 publishable key，更新 `.env.production` 中的 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`。
+2. 执行 `supabase/setup.sql`。
+3. 部署 `supabase/admin-create-user.js` 为 Edge Function `admin-create-user`。
+4. 配置 Edge Function secrets：`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`。
+5. 使用 `npm run seed:supabase` 创建首个管理员并导入初始资料。
+6. 重新执行 `npm run build`、`npm audit --omit=dev`，再推送 GitHub 触发 Pages 部署。
