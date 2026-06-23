@@ -144,14 +144,27 @@ dist
 
 ## 6. 当前发布前置
 
-当前本地 `main` 已与 `origin/main` 对齐。正式发布前需要把本地改动提交并推送到 GitHub：
+当前本地 `main` 已完成上线改动提交，但还未推送到 GitHub。当前状态应显示为本地领先远端：
 
 ```bash
 git status
-git add <本次上线改动>
-git commit -m "Prepare multi-user deployment"
+```
+
+如果这台 Mac 已完成 GitHub 登录，可以直接双击项目根目录下的发布入口：
+
+```text
+上线发布.command
+```
+
+它会依次执行依赖安装、生产依赖安全审计、生产构建、Git 状态检查和 `git push origin main`。
+
+也可以手动执行：
+
+```bash
 git push origin main
 ```
+
+如果出现 `could not read Username for 'https://github.com': Device not configured`，说明当前 Mac 没有可用 GitHub HTTPS 凭据。先在这台 Mac 上完成 GitHub 登录或配置可用的 Personal Access Token / SSH key，再重新运行 `上线发布.command` 或手动推送。
 
 推送后 GitHub Actions 会运行 `.github/workflows/deploy-pages.yml` 并发布到 GitHub Pages。
 
