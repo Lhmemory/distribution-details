@@ -10,15 +10,15 @@ function TrendIcon({ trend }: Pick<StatCardItem, "trend">) {
 
 export function StatCard({ item, icon }: { item: StatCardItem; icon: ReactNode }) {
   return (
-    <article className="tonal-panel p-5">
-      <div className="mb-6 flex items-start justify-between">
+    <article className="tonal-panel p-4">
+      <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{item.label}</p>
-          <h3 className="text-[1.75rem] font-semibold leading-none text-text">{item.value}</h3>
+          <p className="mb-2 text-[13px] font-medium text-muted">{item.label}</p>
+          <h3 className="text-[1.65rem] font-semibold leading-none tracking-normal text-text">{item.value}</h3>
         </div>
-        <div className="rounded-mono bg-surface-low p-2 text-primary">{icon}</div>
+        <div className="rounded-mono bg-primary-soft p-2 text-primary">{icon}</div>
       </div>
-      <div className="flex items-center gap-2 text-xs text-muted">
+      <div className="flex items-center gap-2 text-[13px] text-muted">
         <TrendIcon trend={item.trend} />
         <span>{item.helper}</span>
       </div>

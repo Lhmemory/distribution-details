@@ -4,6 +4,7 @@ import { useAppContext } from "../app/context/AppContext";
 import { PriceGuideRecord } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
 import { formatCurrency, nowLabel } from "../app/utils/format";
+import { canManageAccounts } from "../app/utils/permissions";
 import { parsePriceGuideWorkbook } from "../app/utils/priceGuide";
 import { Button } from "../components/common/Button";
 import { DataTable, TableColumn } from "../components/common/DataTable";
@@ -12,7 +13,7 @@ import { AppShell } from "../components/layout/AppShell";
 const PRICE_GUIDE_GLOBAL_SYSTEM_ID = "global-price-guide";
 
 export function PriceGuidePage() {
-  const { priceGuides, importPriceGuides } = useAppContext();
+  const { priceGuides, importPriceGuides, authUser } = useAppContext();
   const [keyword, setKeyword] = useState("");
   const [sheetFilter, setSheetFilter] = useState("all");
   const [uploading, setUploading] = useState(false);
@@ -20,6 +21,7 @@ export function PriceGuidePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const scopedRecords = priceGuides;
+  const canImportPriceGuides = canManageAccounts(authUser);
 
   const visibleRecords = useMemo(
     () =>
@@ -153,11 +155,11 @@ export function PriceGuidePage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".xlsx,.xls,.csv"
+            accept=".xlsx,.csv"
             className="hidden"
             onChange={handleUpload}
           />
-          <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+          <Button variant="secondary" disabled={uploading || !canImportPriceGuides} onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1 h-4 w-4" />
             {uploading ? "导入中..." : "上传价格指引"}
           </Button>
@@ -200,9 +202,10 @@ export function PriceGuidePage() {
             <h2 className="text-base font-semibold text-text">导入说明</h2>
           </div>
           <div className="space-y-2 text-sm text-muted">
-            <p>1. 支持上传你们每个月下发的 `.xlsx / .xls` 价格指引。</p>
+            <p>1. 支持上传你们每个月下发的 `.xlsx / .csv` 价格指引。</p>
             <p>2. 系统会优先识别“说明”页中的执行时间、品类和邮件标题。</p>
             <p>3. 明细页目前只提取两个价格口径：经销商结算价、重客促销供价。</p>
+            {!canImportPriceGuides ? <p>4. 价格指引导入仅管理员可操作，普通账号只读。</p> : null}
           </div>
           {uploadError ? <p className="mt-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
         </article>

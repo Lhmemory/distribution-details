@@ -383,7 +383,7 @@ export function SystemManagementPage() {
       pageDescription="维护客户/渠道系统的基础资料、合作状态、业务范围和复核节奏。"
       pageActions={
         <div className="flex flex-wrap gap-2">
-          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
+          <input ref={fileInputRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={handleUpload} />
           <Button variant="secondary" onClick={downloadSystemTemplate}>
             <Download className="mr-1 h-4 w-4" />
             下载模板

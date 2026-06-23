@@ -1,5 +1,6 @@
-import { Plus } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { NavLink } from "react-router-dom";
 import { useAppContext } from "../../app/context/AppContext";
 import { canManageAccounts, getVisibleSystems } from "../../app/utils/permissions";
 import { Button } from "../common/Button";
@@ -16,15 +17,15 @@ export function SystemTabs() {
   }
 
   return (
-    <header className="soft-panel mb-4 flex flex-col gap-3 px-3 py-3 sm:px-4 sm:py-4 xl:mb-5 xl:flex-row xl:items-center xl:justify-between xl:px-5">
-      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <header className="soft-panel mb-4 flex flex-col gap-3 px-2 py-2 xl:mb-5 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {visibleSystems.map((system) => (
           <button
             key={system.id}
-            className={`shrink-0 rounded-mono px-3 py-2 text-sm font-medium transition ${
+            className={`shrink-0 rounded-mono px-4 py-2.5 text-sm font-semibold transition ${
               selectedSystemId === system.id
-                ? "bg-surface-base text-primary shadow-ambient"
-                : "text-muted hover:bg-surface-base hover:text-text"
+                ? "bg-primary text-white shadow-sm"
+                : "text-text hover:bg-primary-soft hover:text-primary"
             }`}
             onClick={() => setSelectedSystemId(system.id)}
           >
@@ -33,8 +34,16 @@ export function SystemTabs() {
         ))}
       </div>
 
-      {canManageAccounts(authUser) ? (
-        <div className="grid gap-2 sm:flex sm:flex-row">
+      <div className="grid gap-2 sm:flex sm:flex-row sm:items-center">
+        <NavLink
+          to="/system-management"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-mono px-4 text-sm font-semibold text-text transition hover:bg-surface-low"
+        >
+          <Settings2 className="mr-1 h-4 w-4" />
+          系统管理
+        </NavLink>
+        {canManageAccounts(authUser) ? (
+          <>
           <input
             className="field-input w-full bg-white sm:w-44"
             placeholder="新增系统"
@@ -45,8 +54,9 @@ export function SystemTabs() {
             <Plus className="mr-1 h-4 w-4" />
             新增系统
           </Button>
-        </div>
-      ) : null}
+          </>
+        ) : null}
+      </div>
     </header>
   );
 }

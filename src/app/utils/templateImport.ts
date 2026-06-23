@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx";
 import { ProductRecord, StoreRecord, SystemCooperationStatus, SystemItem, UserAccount } from "../types";
 import { nowLabel } from "./format";
 import { canAccessSystem } from "./permissions";
@@ -8,6 +7,7 @@ import {
   SYSTEM_STATUS_OPTIONS,
   SYSTEM_TYPE_OPTIONS,
 } from "./systemInfo";
+import { downloadWorkbook, excelSerialDateToIso, objectsToRows, readWorkbookRows, rowsToObjects } from "./workbook";
 
 const PRODUCT_HEADERS = {
   system: "系统",
@@ -60,7 +60,7 @@ function pickTargetSystemId(selectedSystemId: string, systems: SystemItem[], aut
 }
 
 function readWorkbook(file: File) {
-  return file.arrayBuffer().then((buffer) => XLSX.read(buffer, { type: "array" }));
+  return readWorkbookRows(file);
 }
 
 function normalizeText(value: unknown) {
@@ -87,10 +87,8 @@ function normalizeSystemDate(value: unknown, rowNumber: number, fieldName: strin
   }
 
   if (typeof value === "number" && Number.isFinite(value)) {
-    const parsed = XLSX.SSF.parse_date_code(value);
-    if (parsed) {
-      return `${parsed.y}-${String(parsed.m).padStart(2, "0")}-${String(parsed.d).padStart(2, "0")}`;
-    }
+    const parsed = excelSerialDateToIso(value);
+    if (parsed) return parsed;
   }
 
   const text = normalizeText(value);
@@ -159,11 +157,11 @@ function resolveImportSystemId(
   return fallbackSystemId;
 }
 
-export function downloadProductTemplate() {
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet([
+export async function downloadProductTemplate() {
+  await downloadWorkbook("商品导入模板.xlsx", [
+    {
+      name: "商品模板",
+      rows: objectsToRows([
       {
         [PRODUCT_HEADERS.system]: "天虹",
         [PRODUCT_HEADERS.barcode]: "6900000000001",
@@ -176,26 +174,24 @@ export function downloadProductTemplate() {
         [PRODUCT_HEADERS.category]: "战略",
       },
     ]),
-    "商品模板",
-  );
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet([
+    },
+    {
+      name: "填写说明",
+      rows: objectsToRows([
       { [HELP_HEADER]: "1. 可以直接在 Excel 中填写“系统”列，支持系统名称或系统 ID。" },
       { [HELP_HEADER]: "2. 如果不填系统列，将默认导入到当前页面已选的具体系统。" },
       { [HELP_HEADER]: "3. 商品编码可留空，条码和商品名称建议填写。" },
-      { [HELP_HEADER]: "4. 价格留空时按 0 处理，支持 .xlsx / .xls / .csv。" },
+      { [HELP_HEADER]: "4. 价格留空时按 0 处理，支持 .xlsx / .csv。" },
     ]),
-    "填写说明",
-  );
-  XLSX.writeFile(workbook, "商品导入模板.xlsx");
+    },
+  ]);
 }
 
-export function downloadStoreTemplate() {
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet([
+export async function downloadStoreTemplate() {
+  await downloadWorkbook("门店导入模板.xlsx", [
+    {
+      name: "门店模板",
+      rows: objectsToRows([
       {
         [STORE_HEADERS.system]: "华润",
         [STORE_HEADERS.storeCode]: "A001",
@@ -210,26 +206,24 @@ export function downloadStoreTemplate() {
         [STORE_HEADERS.salesVolume]: 100000,
       },
     ]),
-    "门店模板",
-  );
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet([
+    },
+    {
+      name: "填写说明",
+      rows: objectsToRows([
       { [HELP_HEADER]: "1. 可以直接在 Excel 中填写“系统”列，支持系统名称或系统 ID。" },
       { [HELP_HEADER]: "2. 如果不填系统列，将默认导入到当前页面已选的具体系统。" },
       { [HELP_HEADER]: "3. 门店编码可留空，门店名称建议必填。" },
       { [HELP_HEADER]: "4. 营业状态支持：营业、已闭店、计划闭店、计划开业、店改。" },
     ]),
-    "填写说明",
-  );
-  XLSX.writeFile(workbook, "门店导入模板.xlsx");
+    },
+  ]);
 }
 
-export function downloadSystemTemplate() {
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet([
+export async function downloadSystemTemplate() {
+  await downloadWorkbook("系统基本信息导入模板.xlsx", [
+    {
+      name: "系统基本信息模板",
+      rows: objectsToRows([
       {
         [SYSTEM_HEADERS.label]: "示例系统",
         [SYSTEM_HEADERS.id]: "",
@@ -244,20 +238,18 @@ export function downloadSystemTemplate() {
         [SYSTEM_HEADERS.notes]: "",
       },
     ]),
-    "系统基本信息模板",
-  );
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet([
+    },
+    {
+      name: "填写说明",
+      rows: objectsToRows([
       { [HELP_HEADER]: "1. 系统名称必填；系统标识可留空，留空时按系统名称匹配已有系统或新增系统。" },
       { [HELP_HEADER]: `2. 系统类型建议使用：${SYSTEM_TYPE_OPTIONS.join("、")}。` },
       { [HELP_HEADER]: `3. 合作状态仅支持：${SYSTEM_STATUS_OPTIONS.join("、")}。` },
       { [HELP_HEADER]: "4. 日期使用 YYYY-MM-DD；同一模板内系统名称或系统标识不能重复。" },
       { [HELP_HEADER]: "5. 不要在模板中填写密码、密钥、个人联系方式等敏感信息。" },
     ]),
-    "填写说明",
-  );
-  XLSX.writeFile(workbook, "系统基本信息导入模板.xlsx");
+    },
+  ]);
 }
 
 export async function parseSystemTemplate(
@@ -266,8 +258,7 @@ export async function parseSystemTemplate(
   authUser: UserAccount | null,
 ) {
   const workbook = await readWorkbook(file);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+  const rows = rowsToObjects<Record<string, unknown>>(workbook.sheets[0]?.rows ?? []);
   const seenKeys = new Set<string>();
 
   const records = rows
@@ -350,8 +341,7 @@ export async function parseProductTemplate(
   authUser: UserAccount | null,
 ) {
   const workbook = await readWorkbook(file);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+  const rows = rowsToObjects<Record<string, unknown>>(workbook.sheets[0]?.rows ?? []);
 
   const records = rows
     .map((row, index): ProductRecord | null => {
@@ -400,8 +390,7 @@ export async function parseStoreTemplate(
   authUser: UserAccount | null,
 ) {
   const workbook = await readWorkbook(file);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+  const rows = rowsToObjects<Record<string, unknown>>(workbook.sheets[0]?.rows ?? []);
 
   const records = rows
     .map((row, index): StoreRecord | null => {

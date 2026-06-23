@@ -66,6 +66,20 @@ export function ProductPage() {
     [authUser, products, selectedSystemId],
   );
 
+  const editableSystemIds = useMemo(
+    () =>
+      systems
+        .filter((system) => system.id !== "all" && canAccessSystem(authUser, system.id, "edit"))
+        .map((system) => system.id),
+    [authUser, systems],
+  );
+  const canUploadProducts =
+    editableSystemIds.length > 0 && (selectedSystemId === "all" || editableSystemIds.includes(selectedSystemId));
+  const canCreateProduct =
+    selectedSystemId === "all"
+      ? Boolean(authUser?.role === "admin")
+      : canAccessSystem(authUser, selectedSystemId, "edit");
+
   const tableColumns = useMemo<TableColumn<ProductRecord>[]>(
     () =>
       [
@@ -161,27 +175,36 @@ export function ProductPage() {
           width: "12%",
           headerClassName: "whitespace-nowrap",
           cellClassName: "whitespace-nowrap",
-          render: (row: ProductRecord) => (
-            <div className="flex flex-col items-end gap-2">
-              <Button
-                variant="secondary"
-                className="min-h-9 w-[92px] px-3"
-                onClick={() => {
-                  setEditing(row);
-                  setDrawerOpen(true);
-                }}
-              >
-                编辑
-              </Button>
-              <Button variant="danger" className="min-h-9 w-[92px] px-3" onClick={() => deleteProduct(row.id)}>
-                <Trash2 className="mr-1 h-4 w-4" />
-                删除
-              </Button>
-            </div>
-          ),
+          render: (row: ProductRecord) => {
+            const canEditRow = canAccessSystem(authUser, row.systemId, "edit");
+            return (
+              <div className="flex flex-col items-end gap-2">
+                <Button
+                  variant="secondary"
+                  className="min-h-9 w-[92px] px-3"
+                  disabled={!canEditRow}
+                  onClick={() => {
+                    setEditing(row);
+                    setDrawerOpen(true);
+                  }}
+                >
+                  编辑
+                </Button>
+                <Button
+                  variant="danger"
+                  className="min-h-9 w-[92px] px-3"
+                  disabled={!canEditRow}
+                  onClick={() => deleteProduct(row.id)}
+                >
+                  <Trash2 className="mr-1 h-4 w-4" />
+                  删除
+                </Button>
+              </div>
+            );
+          },
         },
       ].filter((column) => columns.find((item) => item.key === column.key)?.enabled),
-    [columns, deleteProduct],
+    [authUser, columns, deleteProduct],
   );
 
   async function handleUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -210,12 +233,12 @@ export function ProductPage() {
       pageDescription="按系统维护商品档案、价格字段与模板导入导出。"
       pageActions={
         <div className="flex flex-wrap gap-2">
-          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
+          <input ref={fileInputRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={handleUpload} />
           <Button variant="secondary" onClick={downloadProductTemplate}>
             <Download className="mr-1 h-4 w-4" />
             下载模板
           </Button>
-          <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+          <Button variant="secondary" disabled={uploading || !canUploadProducts} onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1 h-4 w-4" />
             {uploading ? "导入中..." : "上传模板"}
           </Button>
@@ -244,6 +267,7 @@ export function ProductPage() {
             导出 XLSX
           </Button>
           <Button
+            disabled={!canCreateProduct}
             onClick={() => {
               setEditing(null);
               setDrawerOpen(true);

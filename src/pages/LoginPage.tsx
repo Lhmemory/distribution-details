@@ -1,4 +1,4 @@
-import { Building2, LockKeyhole, UserRound } from "lucide-react";
+import { BarChart3, CheckCircle2, Database, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppContext } from "../app/context/AppContext";
@@ -28,105 +28,112 @@ export function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-canvas px-4">
-      <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="hidden rounded-mono bg-surface-low p-10 lg:block">
-          <div className="mb-10 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-mono bg-primary text-white">
-              <Building2 className="h-5 w-5" />
+    <main className="min-h-screen bg-canvas px-4 py-6 lg:px-10">
+      <div className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-6xl overflow-hidden rounded-mono border border-line bg-surface-base shadow-ambient lg:grid-cols-[1.08fr_0.92fr]">
+        <section className="hidden border-r border-line bg-[#fbfdff] p-10 lg:block">
+          <div className="mb-12 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-mono bg-primary-soft text-primary">
+              <BarChart3 className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xl font-bold text-text">重客基础资料后台</p>
-              <p className="text-sm text-muted">企业内部资料管理系统</p>
+              <p className="text-xl font-bold text-text">华南重客基础资料后台</p>
+              <p className="mt-1 text-sm text-muted">商品、门店、价格、销售和权限统一维护</p>
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="tonal-panel p-6">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Access Model</p>
-              <h2 className="text-2xl font-semibold text-text">Code Public, Data Private</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                页面代码可以公开托管，但商品、门店、价格、销量这些业务数据不会打包到前端，而是登录后再从云端读取。
-              </p>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {[
-                "登录后才加载商品、门店、价格指引和销量数据",
-                "支持 GitHub 发布前端，Supabase 托管账号与数据库",
-                "默认关闭演示数据，避免真实业务数据被打包公开",
-                "后续可继续加账号权限、编辑保存和操作日志",
-              ].map((item) => (
-                <div key={item} className="rounded-mono bg-surface-base p-4 shadow-ambient">
-                  <p className="text-sm text-text">{item}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="tonal-panel p-8 lg:p-10">
-          <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-mono bg-primary-soft text-primary">
-              <LockKeyhole className="h-6 w-6" />
-            </div>
-            <h1 className="text-2xl font-semibold text-text">登录系统</h1>
-            <p className="mt-2 text-sm text-muted">
-              {authMode === "supabase"
-                ? "支持直接输入账号或邮箱登录，登录成功后再从云端读取业务数据。"
-                : authMode === "demo"
-                  ? "当前是演示模式，仅用于本地体验页面。"
-                  : "当前站点未完成云端配置，已关闭演示登录。"}
+          <div className="max-w-xl">
+            <p className="mb-3 text-sm font-semibold text-primary">Code Public, Data Private</p>
+            <h1 className="text-[2.15rem] font-semibold leading-tight text-text">
+              登录后加载业务数据，按系统权限隔离访问范围
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-muted">
+              前端可发布到 GitHub Pages，商品、门店、价格指引和销售数据只存放在 Supabase。账号角色和系统权限由管理员统一分配。
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <label className="block">
-              <span className="field-label">{authMode === "supabase" ? "账号 / 邮箱" : "邮箱 / 账号"}</span>
-              <div className="relative">
-                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <input
-                  className="field-input pl-10"
-                  value={identity}
-                  onChange={(event) => setIdentity(event.target.value)}
-                  placeholder={authMode === "supabase" ? "输入账号或邮箱" : "邮箱或账号"}
-                />
+          <div className="mt-10 grid gap-3">
+            {[
+              { icon: ShieldCheck, title: "数据库 RLS", desc: "viewer / editor / admin 在数据库层按系统隔离" },
+              { icon: Database, title: "真实资料入库", desc: "上线后从 Supabase 读取，不把业务 JSON 打包进前端" },
+              { icon: CheckCircle2, title: "操作留痕", desc: "商品、门店、价格、销售和账号操作统一进入变更日志" },
+            ].map((item) => (
+              <div key={item.title} className="flex gap-3 border-t border-line py-4">
+                <item.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div>
+                  <p className="text-sm font-semibold text-text">{item.title}</p>
+                  <p className="mt-1 text-sm text-muted">{item.desc}</p>
+                </div>
               </div>
-            </label>
+            ))}
+          </div>
+        </section>
 
-            <label className="block">
-              <span className="field-label">密码</span>
-              <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                <input
-                  className="field-input pl-10"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="请输入密码"
-                />
+        <section className="flex items-center justify-center p-6 sm:p-10">
+          <div className="w-full max-w-md">
+            <div className="mb-8">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-mono bg-primary-soft text-primary">
+                <LockKeyhole className="h-6 w-6" />
               </div>
-            </label>
+              <h2 className="text-2xl font-semibold text-text">登录系统</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                {authMode === "supabase"
+                  ? "输入账号或邮箱登录，系统会按权限加载可访问的数据。"
+                  : authMode === "demo"
+                    ? "当前是演示模式，仅用于本地体验页面。"
+                    : "当前站点未完成云端配置，已关闭演示登录。"}
+              </p>
+            </div>
 
-            {error ? <p className="text-sm text-critical">{error}</p> : null}
-            {!error && bootstrapMessage ? <p className="text-sm text-muted">{bootstrapMessage}</p> : null}
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <label className="block">
+                <span className="field-label">{authMode === "supabase" ? "账号 / 邮箱" : "邮箱 / 账号"}</span>
+                <div className="relative">
+                  <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                  <input
+                    className="field-input pl-10"
+                    autoComplete="username"
+                    value={identity}
+                    onChange={(event) => setIdentity(event.target.value)}
+                    placeholder={authMode === "supabase" ? "输入账号或邮箱" : "邮箱或账号"}
+                  />
+                </div>
+              </label>
 
-            <Button className="w-full" type="submit" disabled={submitting || authMode === "setup"}>
-              {submitting ? "登录中..." : authMode === "setup" ? "等待云端配置" : "登录并进入总览"}
-            </Button>
-          </form>
+              <label className="block">
+                <span className="field-label">密码</span>
+                <div className="relative">
+                  <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                  <input
+                    className="field-input pl-10"
+                    type="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="请输入密码"
+                  />
+                </div>
+              </label>
 
-          <div className="mt-6 rounded-mono bg-surface-low p-4 text-sm text-muted">
-            {authMode === "supabase" ? (
-              <>上线模式下可由管理员在网页内直接创建账号，业务数据只放数据库，不写进前端源码。</>
-            ) : authMode === "demo" ? (
-              <>
-                演示环境说明：管理员账号可直接使用当前默认值；其他演示账号密码统一为
-                <span className="font-semibold text-text"> 123456</span>。
-              </>
-            ) : (
-              <>请先在项目根目录配置 `.env`，填入 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`。</>
-            )}
+              {error ? <p className="rounded-mono bg-critical-bg px-3 py-2 text-sm text-critical">{error}</p> : null}
+              {!error && bootstrapMessage ? <p className="rounded-mono bg-primary-soft px-3 py-2 text-sm text-primary-dim">{bootstrapMessage}</p> : null}
+
+              <Button className="w-full" type="submit" disabled={submitting || authMode === "setup"}>
+                {submitting ? "登录中..." : authMode === "setup" ? "等待云端配置" : "登录并进入总览"}
+              </Button>
+            </form>
+
+            <div className="mt-6 rounded-mono border border-line bg-surface-low p-4 text-sm leading-6 text-muted">
+              {authMode === "supabase" ? (
+                <>上线模式下可由管理员在网页内创建账号，业务数据只放数据库，不写进前端源码。</>
+              ) : authMode === "demo" ? (
+                <>
+                  演示环境说明：管理员账号可直接使用当前默认值；其他演示账号密码统一为
+                  <span className="font-semibold text-text"> 123456</span>。
+                </>
+              ) : (
+                <>请先在项目根目录配置 `.env`，填入 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`。</>
+              )}
+            </div>
           </div>
         </section>
       </div>

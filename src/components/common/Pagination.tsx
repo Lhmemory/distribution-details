@@ -23,7 +23,7 @@ export function Pagination({
       <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
         <Button
           variant="secondary"
-          className="justify-center"
+          className="min-h-9 justify-center px-3"
           disabled={page === 1}
           onClick={() => onPageChange(page - 1)}
         >
@@ -32,7 +32,7 @@ export function Pagination({
         </Button>
         <Button
           variant="secondary"
-          className="justify-center"
+          className="min-h-9 justify-center px-3"
           disabled={page === totalPages}
           onClick={() => onPageChange(page + 1)}
         >

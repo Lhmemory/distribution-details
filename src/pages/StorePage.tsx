@@ -56,6 +56,12 @@ export function StorePage() {
     authUser &&
       (selectedSystemId === "all" ? authUser.role === "admin" : canAccessSystem(authUser, selectedSystemId, "edit")),
   );
+  const canUploadStores = Boolean(
+    authUser &&
+      (selectedSystemId === "all"
+        ? authUser.role === "admin" || systems.some((system) => system.id !== "all" && canAccessSystem(authUser, system.id, "edit"))
+        : canAccessSystem(authUser, selectedSystemId, "edit")),
+  );
 
   const columns: TableColumn<StoreRecord>[] = [
     {
@@ -203,12 +209,12 @@ export function StorePage() {
       pageDescription="维护门店编码、城市、区域、业态、营业状态和模板导入。"
       pageActions={
         <div className="flex flex-wrap gap-2">
-          <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleUpload} />
+          <input ref={fileInputRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={handleUpload} />
           <Button variant="secondary" onClick={downloadStoreTemplate}>
             <Download className="mr-1 h-4 w-4" />
             下载模板
           </Button>
-          <Button variant="secondary" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+          <Button variant="secondary" disabled={uploading || !canUploadStores} onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-1 h-4 w-4" />
             {uploading ? "导入中..." : "上传模板"}
           </Button>

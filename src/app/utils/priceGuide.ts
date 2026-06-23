@@ -1,5 +1,5 @@
-import * as XLSX from "xlsx";
 import { PriceGuideRecord } from "../types";
+import { excelSerialDateToIso, readWorkbookRows } from "./workbook";
 
 interface SheetMeta {
   executionPeriod?: string;
@@ -19,8 +19,11 @@ function numberOf(value: unknown) {
 }
 
 function excelDateToText(value: unknown) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
   if (typeof value === "number" && value > 30000) {
-    return XLSX.SSF.format("yyyy-mm-dd", value);
+    return excelSerialDateToIso(value) ?? "";
   }
   return textOf(value);
 }
@@ -63,16 +66,14 @@ export async function parsePriceGuideWorkbook(
   systemId: string,
   importedAt: string,
 ): Promise<PriceGuideRecord[]> {
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: "array" });
-  const noteSheet = workbook.Sheets["说明"];
-  const noteRows = noteSheet ? (XLSX.utils.sheet_to_json(noteSheet, { header: 1, defval: "" }) as unknown[][]) : [];
+  const workbook = await readWorkbookRows(file);
+  const noteRows = workbook.sheets.find((sheet) => sheet.name === "说明")?.rows ?? [];
   const metaBySheet = buildSheetMeta(noteRows);
   const records: PriceGuideRecord[] = [];
 
-  workbook.SheetNames.filter((name) => name !== "说明").forEach((sheetName) => {
-    const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }) as unknown[][];
+  workbook.sheets.filter((sheet) => sheet.name !== "说明").forEach((sheet) => {
+    const sheetName = sheet.name;
+    const rows = sheet.rows;
     if (rows.length < 5) return;
 
     const dataRows = rows.slice(4).filter((row) => row.some((value) => textOf(value)));

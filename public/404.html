@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Redirecting...</title>
+    <script>
+      (function () {
+        var basePath = "/distribution-details";
+        var pathname = window.location.pathname || "";
+        var search = window.location.search || "";
+        var hash = window.location.hash || "";
+        var route = pathname.indexOf(basePath) === 0 ? pathname.slice(basePath.length) : pathname;
+        var target = basePath + "/#" + (route || "/") + search + hash;
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>

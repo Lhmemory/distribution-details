@@ -3,8 +3,9 @@ import {
   FileSpreadsheet,
   LayoutDashboard,
   Package2,
+  PanelLeftClose,
   Settings2,
-  ShieldCheck,
+  BarChart3,
   Store,
   Users,
   X,
@@ -12,6 +13,7 @@ import {
 import { clsx } from "clsx";
 import { NavLink } from "react-router-dom";
 import { useAppContext } from "../../app/context/AppContext";
+import { canManageAccounts } from "../../app/utils/permissions";
 
 const navItems = [
   { to: "/overview", label: "总览", icon: LayoutDashboard },
@@ -30,6 +32,9 @@ interface SidebarProps {
 
 export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const { authUser } = useAppContext();
+  const visibleNavItems = canManageAccounts(authUser)
+    ? navItems
+    : navItems.filter((item) => item.to !== "/account-permissions");
 
   return (
     <>
@@ -42,18 +47,18 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       ) : null}
       <aside
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 flex w-[min(20rem,85vw)] shrink-0 flex-col bg-surface-low px-4 py-5 transition-transform lg:static lg:h-screen lg:w-56 lg:translate-x-0 lg:px-4 lg:py-6",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(20rem,85vw)] shrink-0 flex-col border-r border-line bg-surface-base px-4 py-5 transition-transform lg:static lg:h-screen lg:w-64 lg:translate-x-0 lg:px-4 lg:py-6",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="mb-6 flex items-center justify-between gap-3 lg:mb-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-mono bg-primary text-white">
-              <ShieldCheck className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-mono bg-primary-soft text-primary">
+              <BarChart3 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-lg font-bold text-text">华南重客</p>
-              <p className="text-xs uppercase tracking-[0.16em] text-muted">SCKA</p>
+              <p className="text-base font-bold text-text">华南重客基础资料后台</p>
+              <p className="mt-0.5 text-xs text-muted">Master Data Console</p>
             </div>
           </div>
           <button
@@ -64,8 +69,8 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <nav className="space-y-1.5">
-          {navItems.map((item) => (
+        <nav className="space-y-1">
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -74,14 +79,14 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                 clsx(
                   "relative flex items-center gap-3 rounded-mono px-3 py-3 text-sm font-medium transition lg:px-4",
                   isActive
-                    ? "bg-surface-base text-primary shadow-ambient"
-                    : "text-muted hover:bg-surface-high hover:text-text",
+                    ? "bg-primary-soft text-primary"
+                    : "text-text hover:bg-surface-low hover:text-primary",
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  {isActive ? <span className="absolute bottom-2 left-0 top-2 w-0.5 rounded-full bg-primary" /> : null}
+                  {isActive ? <span className="absolute bottom-2 left-0 top-2 w-1 rounded-r-full bg-primary" /> : null}
                   <item.icon className="h-4 w-4" />
                   <span>{item.label}</span>
                 </>
@@ -90,9 +95,20 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        <div className="mt-auto rounded-mono bg-surface-base p-3 shadow-ambient lg:p-4">
-          <p className="text-sm font-semibold text-text">{authUser?.name ?? "访客"}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.14em] text-muted">{authUser?.role ?? "未登录"}</p>
+        <div className="mt-auto border-t border-line pt-4">
+          <div className="mb-4 flex items-center gap-3 rounded-mono bg-surface-low p-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
+              {authUser?.name?.slice(0, 1) ?? "访"}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-text">{authUser?.name ?? "访客"}</p>
+              <p className="mt-0.5 text-xs text-muted">{authUser?.role ?? "未登录"}</p>
+            </div>
+          </div>
+          <button className="flex w-full items-center gap-3 rounded-mono px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-surface-low hover:text-text">
+            <PanelLeftClose className="h-4 w-4" />
+            收起菜单
+          </button>
         </div>
       </aside>
     </>

@@ -20,6 +20,10 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  if (req.method !== "POST") {
+    return json({ error: "Method not allowed." }, 405);
+  }
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -31,10 +35,14 @@ Deno.serve(async (req) => {
       return json({ error: "Invalid authorization header." }, 401);
     }
 
-    const adminClient = createClient(
-      Deno.env.get("SUPABASE_URL"),
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return json({ error: "Supabase service environment is not configured." }, 500);
+    }
+
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: authData, error: authError } = await adminClient.auth.getUser(accessToken);
     const callerId = authData?.user?.id;
@@ -57,16 +65,43 @@ Deno.serve(async (req) => {
     const displayName = String(payload.name ?? "").trim();
     const password = typeof payload.password === "string" ? payload.password.trim() : "";
     const role = ["viewer", "editor", "admin"].includes(payload.role) ? payload.role : "viewer";
-    const viewSystemIds = Array.isArray(payload.viewSystemIds) ? payload.viewSystemIds : [];
-    const editSystemIds = Array.isArray(payload.editSystemIds) ? payload.editSystemIds : [];
+    const viewSystemIds = normalizeIdList(payload.viewSystemIds);
+    const editSystemIds = normalizeIdList(payload.editSystemIds).filter((id) => viewSystemIds.includes(id));
     const userId = typeof payload.userId === "string" ? payload.userId : "";
 
     if (!account || !displayName) {
       return json({ error: "account and name are required." }, 400);
     }
 
+    if (!/^[a-zA-Z0-9._-]{2,64}$/.test(account)) {
+      return json({ error: "account must be 2-64 chars and only include letters, numbers, dot, underscore, or hyphen." }, 400);
+    }
+
     if (!userId && !password) {
       return json({ error: "password is required when creating a new account." }, 400);
+    }
+
+    if (password && password.length < 6) {
+      return json({ error: "password must be at least 6 characters." }, 400);
+    }
+
+    if (!viewSystemIds.length) {
+      return json({ error: "at least one view system is required." }, 400);
+    }
+
+    const { data: systems, error: systemsError } = await adminClient
+      .from("systems")
+      .select("id")
+      .neq("id", "all");
+
+    if (systemsError) {
+      return json({ error: systemsError.message }, 400);
+    }
+
+    const knownSystemIds = new Set((systems ?? []).map((item) => item.id));
+    const invalidSystemIds = [...viewSystemIds, ...editSystemIds].filter((id) => !knownSystemIds.has(id));
+    if (invalidSystemIds.length) {
+      return json({ error: `unknown system id: ${invalidSystemIds[0]}` }, 400);
     }
 
     const loginEmail = buildInternalLoginEmail(account);
@@ -178,6 +213,17 @@ function encodeLegacyPermissions(viewSystemIds, editSystemIds) {
   const view = Array.from(new Set((viewSystemIds ?? []).filter(Boolean))).map((id) => `v:${id}`);
   const edit = Array.from(new Set((editSystemIds ?? []).filter(Boolean))).map((id) => `e:${id}`);
   return [...view, ...edit];
+}
+
+function normalizeIdList(value) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(
+    new Set(
+      value
+        .map((item) => String(item ?? "").trim())
+        .filter((item) => item && item !== "all"),
+    ),
+  );
 }
 
 function buildInternalLoginEmail(account) {

@@ -87,10 +87,10 @@ export function DataTable<T>({
           {pageRows.map((row, rowIndex) => (
             <article
               key={rowIndex}
-              className="overflow-hidden rounded-mono border border-line/70 bg-surface-base shadow-ambient"
+              className="overflow-hidden rounded-mono border border-line bg-surface-base"
             >
               {headlineColumn ? (
-                <div className="border-b border-line/70 bg-[#f7fafc] px-4 py-3">
+                <div className="border-b border-line bg-[#f8fafd] px-4 py-3">
                   <p className="mb-1 text-[11px] font-semibold tracking-[0.12em] text-muted">{headlineColumn.header}</p>
                   <div className={clsx("text-base font-semibold leading-6 text-text", headlineColumn.cellClassName)}>
                     {headlineColumn.render(row)}
@@ -113,7 +113,7 @@ export function DataTable<T>({
               </div>
 
               {actionColumn ? (
-                <div className="border-t border-line/70 bg-[#fbfdff] px-4 py-3">
+                <div className="border-t border-line bg-[#fbfdff] px-4 py-3">
                   <p className="mb-2 text-[11px] font-semibold tracking-[0.08em] text-muted">{actionColumn.header}</p>
                   <div className={clsx("mobile-actions text-sm text-text", actionColumn.cellClassName)}>
                     {actionColumn.render(row)}
@@ -125,7 +125,7 @@ export function DataTable<T>({
         </div>
       </div>
 
-      <div className="hidden overflow-x-auto rounded-mono bg-surface-base shadow-ambient md:block">
+      <div className="hidden overflow-x-auto rounded-mono border border-line bg-surface-base md:block">
         <table className="table-grid">
           <thead>
             <tr>

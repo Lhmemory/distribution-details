@@ -13,6 +13,7 @@ import { UserDrawer } from "../components/permissions/UserDrawer";
 
 export function AccountPermissionsPage() {
   const { users, systems, upsertUser, authUser } = useAppContext();
+  const isAdmin = canManageAccounts(authUser);
   const [activeUser, setActiveUser] = useState<UserAccount | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +64,7 @@ export function AccountPermissionsPage() {
           <Button
             variant="secondary"
             className="min-h-8 px-3"
-            disabled={!canManageAccounts(authUser)}
+            disabled={!isAdmin}
             onClick={() => {
               setActiveUser(row);
               setSubmitError("");
@@ -75,8 +76,24 @@ export function AccountPermissionsPage() {
         ),
       },
     ],
-    [authUser, systemLabelMap],
+    [isAdmin, systemLabelMap],
   );
+
+  if (!isAdmin) {
+    return (
+      <AppShell
+        pageTitle="账号权限"
+        pageDescription="账号列表和权限配置仅管理员可见。当前账号只显示自己的业务权限。"
+      >
+        <section className="tonal-panel p-6">
+          <p className="text-sm font-semibold text-text">无权访问账号权限管理</p>
+          <p className="mt-2 text-sm text-muted">
+            如需新增账号、重置密码或调整系统权限，请联系管理员处理。
+          </p>
+        </section>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell
@@ -107,7 +124,7 @@ export function AccountPermissionsPage() {
             <Download className="mr-1 h-4 w-4" />
             导出 XLSX
           </Button>
-          {canManageAccounts(authUser) ? (
+          {isAdmin ? (
             <Button
               onClick={() => {
                 setActiveUser(null);

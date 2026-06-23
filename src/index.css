@@ -27,11 +27,11 @@
 
 @layer components {
   .tonal-panel {
-    @apply rounded-mono bg-surface-base shadow-ambient;
+    @apply rounded-mono border border-line bg-surface-base shadow-ambient;
   }
 
   .soft-panel {
-    @apply rounded-mono bg-surface-low;
+    @apply rounded-mono border border-line bg-surface-base;
   }
 
   .ghost-outline {
@@ -43,11 +43,11 @@
   }
 
   .table-grid th {
-    @apply sticky top-0 z-10 border-b border-line bg-[#eef3f7] px-5 py-4 text-left text-[13px] font-semibold tracking-[0.01em] text-muted;
+    @apply sticky top-0 z-10 border-b border-line bg-[#f8fafd] px-4 py-3 text-left text-[12px] font-semibold tracking-[0.01em] text-muted;
   }
 
   .table-grid td {
-    @apply border-b border-line px-5 py-4 align-top text-[15px] leading-7 text-text;
+    @apply border-b border-line px-4 py-3 align-top text-[14px] leading-6 text-text;
   }
 
   .table-grid tbody tr:nth-child(odd) {
@@ -55,11 +55,11 @@
   }
 
   .table-grid tbody tr:nth-child(even) {
-    @apply bg-[#f5f8fb];
+    @apply bg-[#fbfcfe];
   }
 
   .table-grid tbody tr:hover {
-    @apply bg-[#edf3f8];
+    @apply bg-primary-soft/45;
   }
 
   .table-grid tbody tr:last-child td {
@@ -71,11 +71,11 @@
   }
 
   .field-label {
-    @apply mb-2 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted;
+    @apply mb-2 block text-[12px] font-semibold text-muted;
   }
 
   .field-input {
-    @apply w-full rounded-mono border border-line bg-surface-base px-3 py-2.5 text-sm text-text outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15;
+    @apply w-full rounded-mono border border-line bg-surface-base px-3 py-2.5 text-sm text-text outline-none transition placeholder:text-muted/70 focus:border-primary focus:ring-2 focus:ring-primary/15;
   }
 
   .clamp-2 {

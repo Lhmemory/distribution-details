@@ -8,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: "bg-primary text-white hover:bg-primary-dim",
-  secondary: "bg-surface-low text-text hover:bg-surface-high",
-  ghost: "bg-transparent text-primary hover:bg-primary/5",
-  danger: "bg-critical-bg/20 text-critical hover:bg-critical-bg/30",
+  primary: "border border-primary bg-primary text-white shadow-sm hover:bg-primary-dim",
+  secondary: "border border-line bg-surface-base text-text hover:border-primary/35 hover:bg-primary-soft/40",
+  ghost: "border border-transparent bg-transparent text-primary hover:bg-primary-soft",
+  danger: "border border-critical-bg bg-critical-bg text-critical hover:border-critical/25",
 };
 
 export function Button({
@@ -23,7 +23,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        "inline-flex min-h-10 items-center justify-center rounded-mono px-4 text-sm font-medium whitespace-nowrap transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-mono px-4 text-sm font-semibold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45",
         variants[variant],
         className,
       )}

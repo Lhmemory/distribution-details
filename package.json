@@ -6,17 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:supabase": "node supabase/seed-from-json.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "clsx": "^2.1.1",
+    "exceljs": "^4.4.0",
     "lucide-react": "^0.511.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
     "react-router-dom": "^7.6.0",
-    "xlsx": "^0.18.5",
     "zod": "^3.24.4"
   },
   "devDependencies": {
@@ -28,5 +29,10 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "11.1.1"
+    }
   }
 }
