@@ -8,3 +8,4 @@ dist/
 *.tsbuildinfo
 stitch_ui.zip
 _stitch_unpack/
+.deploy_keys/
