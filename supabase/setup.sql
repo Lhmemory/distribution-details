@@ -412,7 +412,7 @@ create policy "price guides authenticated read"
 on public.price_guides
 for select
 to authenticated
-using (true);
+using (app_private.can_view_system(system_id));
 
 drop policy if exists "price guides admin insert" on public.price_guides;
 create policy "price guides admin insert"
