@@ -47,6 +47,13 @@ alter table public.profiles
   add column if not exists status text not null default 'active',
   add column if not exists updated_at timestamptz not null default now();
 
+alter table public.profiles
+  alter column role set default 'viewer';
+
+alter table public.profiles
+  drop constraint if exists profiles_role_check,
+  add constraint profiles_role_check check (role in ('viewer', 'editor', 'admin'));
+
 create table if not exists public.products (
   id text primary key,
   system_id text not null references public.systems(id) on delete cascade,
@@ -267,14 +274,16 @@ to authenticated
 using (app_private.can_manage_accounts());
 
 drop policy if exists "profiles authenticated read" on public.profiles;
+drop policy if exists "profiles readable for signed in users" on public.profiles;
 drop policy if exists "profiles self or admin read" on public.profiles;
 create policy "profiles self or admin read"
 on public.profiles
 for select
 to authenticated
-using (id = auth.uid() or app_private.can_manage_accounts());
+using (id = (select auth.uid()) or app_private.can_manage_accounts());
 
 drop policy if exists "profiles self update" on public.profiles;
+drop policy if exists "users can update own profile" on public.profiles;
 drop policy if exists "profiles admin insert" on public.profiles;
 create policy "profiles admin insert"
 on public.profiles
@@ -296,6 +305,16 @@ on public.profiles
 for delete
 to authenticated
 using (app_private.can_manage_accounts());
+
+do $$
+begin
+  if to_regclass('public.distribution_records') is not null then
+    drop policy if exists "records editable for signed in users" on public.distribution_records;
+  end if;
+  if to_regclass('public.distribution_change_logs') is not null then
+    drop policy if exists "logs insertable for signed in users" on public.distribution_change_logs;
+  end if;
+end $$;
 
 drop policy if exists "products authenticated access" on public.products;
 drop policy if exists "products scoped read" on public.products;
