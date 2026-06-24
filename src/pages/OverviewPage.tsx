@@ -57,6 +57,7 @@ export function OverviewPage() {
       (!item.systemId || selectedSystemId === "all" || item.systemId === selectedSystemId) &&
       (!item.systemId || canAccessSystem(authUser, item.systemId)),
   );
+  const latestChangeTime = scopedLogs[0]?.timestamp ? displayTimestamp(scopedLogs[0].timestamp) : "暂无更新";
 
   const statCards = useMemo(
     () => [
@@ -80,7 +81,7 @@ export function OverviewPage() {
         id: "sales",
         label: "销售记录",
         value: formatNumber(scopedSales.length),
-        helper: "可查看期间版本",
+        helper: scopedSales.length ? "可查看期间版本" : "暂无销售导入",
         trend: "flat" as const,
         icon: <BarChart3 className="h-4 w-4" />,
       },
@@ -107,14 +108,14 @@ export function OverviewPage() {
   return (
     <AppShell
       pageTitle="总览"
-      pageDescription={`当前系统：${systemLabel} · 当前账号：${authUser?.name ?? "-"} (${cnRoleLabel(authUser?.role ?? "viewer")})`}
+      pageDescription={`当前系统：${systemLabel} · 账号：${authUser?.name ?? "-"} · 角色：${cnRoleLabel(authUser?.role ?? "viewer")}`}
     >
-      <section className="grid gap-3 xl:grid-cols-6">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
         {statCards.map((item) => (
           <StatCard key={item.id} item={item} icon={item.icon} />
         ))}
-        <article className="tonal-panel p-4">
-          <div className="mb-5 flex items-start justify-between gap-3">
+        <article className="tonal-panel min-h-[128px] p-4">
+          <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <p className="mb-2 text-[13px] font-medium text-muted">我的权限</p>
               <h3 className="text-[1.65rem] font-semibold leading-none text-primary">
@@ -133,22 +134,22 @@ export function OverviewPage() {
       </section>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted">
-        <span>数据更新时间：2026-06-22 08:43:12</span>
-        <button className="inline-flex items-center gap-1 rounded-mono px-2 py-1 font-medium text-muted transition hover:bg-surface-low hover:text-primary">
+        <span>数据更新时间：{latestChangeTime}</span>
+        <button className="inline-flex min-h-8 items-center gap-1 rounded-mono px-2 font-medium text-muted transition hover:bg-surface-low hover:text-primary">
           <RefreshCw className="h-4 w-4" />
           刷新
         </button>
       </div>
 
-      <section className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_1fr]">
+      <section className="mt-5 grid gap-4 xl:grid-cols-[1.45fr_1fr]">
         <article className="tonal-panel">
-          <div className="flex flex-col gap-3 border-b border-line px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-line px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-base font-semibold text-text">最近变更记录</h2>
-              <p className="mt-1 text-sm text-muted">按当前系统权限展示最近操作。</p>
+              <p className="mt-1 text-xs text-muted">按当前系统权限展示最近操作</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <select className="field-input min-h-10 w-36 bg-white">
+              <select className="toolbar-control w-36 bg-white">
                 <option>全部类型</option>
                 <option>新增</option>
                 <option>修改</option>
@@ -180,6 +181,14 @@ export function OverviewPage() {
 
           <div className="overflow-x-auto">
             <table className="table-grid min-w-[760px]">
+              <colgroup>
+                <col className="w-[17%]" />
+                <col className="w-[10%]" />
+                <col className="w-[13%]" />
+                <col className="w-[14%]" />
+                <col className="w-[33%]" />
+                <col className="w-[13%]" />
+              </colgroup>
               <thead>
                 <tr>
                   <th>时间</th>
@@ -193,28 +202,36 @@ export function OverviewPage() {
               <tbody>
                 {scopedLogs.slice(0, 8).map((log) => (
                   <tr key={log.id}>
-                    <td className="tabular text-muted">{log.timestamp}</td>
+                    <td className="tabular whitespace-nowrap text-muted">{displayTimestamp(log.timestamp)}</td>
                     <td>
                       <Badge tone={log.action === "delete" ? "critical" : log.action === "update" ? "success" : "primary"}>
-                        {log.action}
+                        {actionLabel(log.action)}
                       </Badge>
                     </td>
                     <td>{log.systemId ? systemLabelMap.get(log.systemId) ?? log.systemId : "全部"}</td>
-                    <td>{log.title}</td>
-                    <td>{log.description}</td>
+                    <td>{entityLabel(log.entity)}</td>
+                    <td className="truncate" title={`${log.title}：${log.description}`}>
+                      <span className="font-medium text-text">{log.title}</span>
+                      <span className="mx-1 text-muted">·</span>
+                      <span className="text-muted">{log.description}</span>
+                    </td>
                     <td>{log.operator}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <div className="flex items-center justify-between border-t border-line px-4 py-3 text-sm text-muted">
+            <span>共 {formatNumber(scopedLogs.length)} 条</span>
+            <span>显示最近 8 条</span>
+          </div>
         </article>
 
         <article className="tonal-panel">
-          <div className="flex items-center justify-between border-b border-line px-4 py-4">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
             <div>
               <h2 className="text-base font-semibold text-text">数据预警 ({scopedAlerts.length})</h2>
-              <p className="mt-1 text-sm text-muted">优先处理高风险资料缺口。</p>
+              <p className="mt-1 text-xs text-muted">优先处理高风险资料缺口</p>
             </div>
             <button className="text-sm font-semibold text-primary">查看全部</button>
           </div>
@@ -242,7 +259,7 @@ export function OverviewPage() {
       </section>
 
       <section className="tonal-panel mt-5 overflow-hidden">
-        <div className="border-b border-line px-4 py-4">
+        <div className="border-b border-line px-4 py-3.5">
           <h2 className="text-base font-semibold text-text">我的受限上下文</h2>
         </div>
         <div className="grid gap-0 divide-y divide-line lg:grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)_minmax(300px,1.25fr)] lg:divide-x lg:divide-y-0">
@@ -263,6 +280,37 @@ export function OverviewPage() {
       </section>
     </AppShell>
   );
+}
+
+function actionLabel(action: string) {
+  const map: Record<string, string> = {
+    create: "新增",
+    update: "修改",
+    delete: "删除",
+    import: "导入",
+    "save-version": "保存",
+  };
+  return map[action] ?? action;
+}
+
+function entityLabel(entity: string) {
+  const map: Record<string, string> = {
+    product: "商品信息",
+    store: "门店信息",
+    sales: "销售数据",
+    user: "账号权限",
+    system: "系统资料",
+    "price-guide": "价格指引",
+  };
+  return map[entity] ?? entity;
+}
+
+function displayTimestamp(value: string) {
+  const normalized = value.includes("T") ? value : value.replace(" ", "T");
+  const date = new Date(normalized);
+  if (Number.isNaN(date.getTime())) return value;
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 function Meta({ label, value, helper }: { label: string; value: string; helper?: string }) {

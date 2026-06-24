@@ -25,6 +25,8 @@ var config = {
             },
             boxShadow: {
                 ambient: "0 10px 28px rgba(16, 24, 40, 0.06)",
+                panel: "0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 24px rgba(16, 24, 40, 0.04)",
+                subtle: "0 1px 2px rgba(16, 24, 40, 0.035)",
             },
             borderRadius: {
                 mono: "0.5rem",

@@ -1,15 +1,4 @@
-import {
-  ChartColumn,
-  FileSpreadsheet,
-  LayoutDashboard,
-  Package2,
-  PanelLeftClose,
-  Settings2,
-  BarChart3,
-  Store,
-  Users,
-  X,
-} from "lucide-react";
+import { BarChart3, ChartColumn, FileSpreadsheet, LayoutDashboard, Package2, PanelLeftClose, Settings2, Store, Users, X } from "lucide-react";
 import { clsx } from "clsx";
 import { NavLink } from "react-router-dom";
 import { useAppContext } from "../../app/context/AppContext";
@@ -31,7 +20,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
-  const { authUser } = useAppContext();
+  const { authUser, selectedSystemId, systems } = useAppContext();
+  const selectedSystem = systems.find((system) => system.id === selectedSystemId)?.label ?? "未选择系统";
   const visibleNavItems = canManageAccounts(authUser)
     ? navItems
     : navItems.filter((item) => item.to !== "/account-permissions");
@@ -47,18 +37,18 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
       ) : null}
       <aside
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 flex w-[min(20rem,85vw)] shrink-0 flex-col border-r border-line bg-surface-base px-4 py-5 transition-transform lg:static lg:h-screen lg:w-64 lg:translate-x-0 lg:px-4 lg:py-6",
+          "fixed inset-y-0 left-0 z-50 flex w-[min(20rem,85vw)] shrink-0 flex-col border-r border-line bg-surface-base px-4 py-4 transition-transform lg:static lg:h-screen lg:w-[252px] lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="mb-6 flex items-center justify-between gap-3 lg:mb-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-mono bg-primary-soft text-primary">
+        <div className="mb-5 flex h-12 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-mono bg-primary-soft text-primary">
               <BarChart3 className="h-5 w-5" />
             </div>
-            <div>
-              <p className="text-base font-bold text-text">华南重客基础资料后台</p>
-              <p className="mt-0.5 text-xs text-muted">Master Data Console</p>
+            <div className="min-w-0">
+              <p className="truncate text-base font-bold text-text">华南重客基础资料后台</p>
+              <p className="mt-0.5 truncate text-xs text-muted">Master Data Console</p>
             </div>
           </div>
           <button
@@ -77,18 +67,18 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
               onClick={onClose}
               className={({ isActive }) =>
                 clsx(
-                  "relative flex items-center gap-3 rounded-mono px-3 py-3 text-sm font-medium transition lg:px-4",
+                  "relative flex min-h-11 items-center gap-3 rounded-mono px-3 text-sm font-medium transition",
                   isActive
-                    ? "bg-primary-soft text-primary"
-                    : "text-text hover:bg-surface-low hover:text-primary",
+                    ? "bg-primary-soft text-primary shadow-subtle"
+                    : "text-[#344054] hover:bg-surface-low hover:text-primary",
                 )
               }
             >
               {({ isActive }) => (
                 <>
                   {isActive ? <span className="absolute bottom-2 left-0 top-2 w-1 rounded-r-full bg-primary" /> : null}
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <item.icon className={clsx("h-4 w-4 shrink-0", isActive ? "text-primary" : "text-[#475467]")} />
+                  <span className="truncate">{item.label}</span>
                 </>
               )}
             </NavLink>
@@ -102,7 +92,7 @@ export function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-text">{authUser?.name ?? "访客"}</p>
-              <p className="mt-0.5 text-xs text-muted">{authUser?.role ?? "未登录"}</p>
+              <p className="mt-0.5 truncate text-xs text-muted">{selectedSystem}</p>
             </div>
           </div>
           <button className="flex w-full items-center gap-3 rounded-mono px-3 py-2.5 text-sm font-medium text-muted transition hover:bg-surface-low hover:text-text">
