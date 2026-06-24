@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useAppContext } from "../app/context/AppContext";
 import { UserAccount } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
-import { cnRoleLabel } from "../app/utils/format";
+import { cnRoleLabel, formatDateTimeLabel } from "../app/utils/format";
 import { canManageAccounts } from "../app/utils/permissions";
 import { Badge } from "../components/common/Badge";
 import { Button } from "../components/common/Button";
@@ -55,7 +55,7 @@ export function AccountPermissionsPage() {
         header: "更新时间",
         sortable: true,
         sortValue: (row) => row.updatedAt,
-        render: (row) => row.updatedAt,
+        render: (row) => <span className="tabular">{formatDateTimeLabel(row.updatedAt)}</span>,
       },
       {
         key: "actions",
@@ -85,7 +85,7 @@ export function AccountPermissionsPage() {
         pageTitle="账号权限"
         pageDescription="账号列表和权限配置仅管理员可见。当前账号只显示自己的业务权限。"
       >
-        <section className="tonal-panel p-6">
+        <section className="workspace-panel p-6">
           <p className="text-sm font-semibold text-text">无权访问账号权限管理</p>
           <p className="mt-2 text-sm text-muted">
             如需新增账号、重置密码或调整系统权限，请联系管理员处理。
@@ -139,13 +139,19 @@ export function AccountPermissionsPage() {
         </div>
       }
     >
-      <section className="tonal-panel p-5">
-        <DataTable
-          rows={users}
-          columns={columns}
-          emptyTitle="暂无账号"
-          emptyDescription="管理员可直接新增账号，并在网页内设置初始密码和权限。"
-        />
+      <section className="workspace-panel">
+        <div className="workspace-note">
+          <Badge tone="primary">权限治理</Badge>
+          <span>admin 可创建账号并设置系统查看/编辑范围；viewer 只读，editor 可维护分配系统内的数据。</span>
+        </div>
+        <div className="workspace-body">
+          <DataTable
+            rows={users}
+            columns={columns}
+            emptyTitle="暂无账号"
+            emptyDescription="管理员可直接新增账号，并在网页内设置初始密码和权限。"
+          />
+        </div>
       </section>
 
       <UserDrawer

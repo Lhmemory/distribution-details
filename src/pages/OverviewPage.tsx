@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   BarChart3,
   Download,
+  FileSpreadsheet,
   History,
   Package,
   RefreshCw,
@@ -20,7 +21,7 @@ import { StatCard } from "../components/common/StatCard";
 import { AppShell } from "../components/layout/AppShell";
 
 export function OverviewPage() {
-  const { selectedSystemId, systems, products, stores, sales, changeLogs, alerts, authUser } = useAppContext();
+  const { selectedSystemId, systems, products, stores, sales, priceGuides, changeLogs, alerts, authUser } = useAppContext();
   const systemLabel = systems.find((item) => item.id === selectedSystemId)?.label ?? "全部";
   const systemLabelMap = new Map(systems.map((item) => [item.id, item.label]));
   const visibleSystemIds = systems
@@ -78,6 +79,14 @@ export function OverviewPage() {
         icon: <Store className="h-4 w-4" />,
       },
       {
+        id: "priceGuides",
+        label: "价格指引",
+        value: formatNumber(priceGuides.length),
+        helper: "全系统共用价格口径",
+        trend: "flat" as const,
+        icon: <FileSpreadsheet className="h-4 w-4" />,
+      },
+      {
         id: "sales",
         label: "销售记录",
         value: formatNumber(scopedSales.length),
@@ -93,16 +102,8 @@ export function OverviewPage() {
         trend: "flat" as const,
         icon: <History className="h-4 w-4" />,
       },
-      {
-        id: "alerts",
-        label: "数据预警",
-        value: formatNumber(scopedAlerts.length),
-        helper: scopedAlerts.length ? "待处理预警" : "暂无待处理",
-        trend: scopedAlerts.length ? "down" as const : "flat" as const,
-        icon: <AlertTriangle className="h-4 w-4" />,
-      },
     ],
-    [scopedAlerts.length, scopedLogs.length, scopedProducts.length, scopedSales.length, scopedStores.length],
+    [priceGuides.length, scopedLogs.length, scopedProducts.length, scopedSales.length, scopedStores.length],
   );
 
   return (
@@ -252,7 +253,12 @@ export function OverviewPage() {
                 </div>
               ))
             ) : (
-              <div className="px-4 py-10 text-center text-sm text-muted">当前系统暂无数据预警。</div>
+              <div className="flex min-h-[360px] flex-col items-center justify-center px-4 py-10 text-center text-sm text-muted">
+                <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-mono bg-primary-soft text-primary">
+                  <AlertTriangle className="h-5 w-5" />
+                </span>
+                当前系统暂无数据预警。
+              </div>
             )}
           </div>
         </article>

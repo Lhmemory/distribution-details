@@ -425,8 +425,8 @@ export function SystemManagementPage() {
         </div>
       }
     >
-      <section className="tonal-panel p-5">
-        <div className="mb-4 grid gap-3 xl:grid-cols-[1fr_180px_180px]">
+      <section className="workspace-panel">
+        <div className="workspace-toolbar grid gap-3 xl:grid-cols-[1fr_180px_180px]">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
@@ -454,22 +454,24 @@ export function SystemManagementPage() {
           </select>
         </div>
 
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="workspace-note">
           <Badge tone="primary">已启用模板导入</Badge>
-          <span className="text-sm text-muted">系统基本信息不记录业务负责人、客户联系人、电话、密码或密钥。</span>
+          <span>系统基本信息不记录业务负责人、客户联系人、电话、密码或密钥。</span>
         </div>
 
-        {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
-        {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
+        <div className="workspace-body">
+          {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
+          {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
 
-        <DataTable
-          rows={rows}
-          columns={columns}
-          pageSize={12}
-          paginationSummary={`当前可见 ${visibleSystems.length} 个系统，筛选后 ${rows.length} 个`}
-          emptyTitle="暂无系统基本信息"
-          emptyDescription="请调整筛选条件，或由管理员新增系统。"
-        />
+          <DataTable
+            rows={rows}
+            columns={columns}
+            pageSize={12}
+            paginationSummary={`当前可见 ${visibleSystems.length} 个系统，筛选后 ${rows.length} 个`}
+            emptyTitle="暂无系统基本信息"
+            emptyDescription="请调整筛选条件，或由管理员新增系统。"
+          />
+        </div>
       </section>
 
       <Drawer

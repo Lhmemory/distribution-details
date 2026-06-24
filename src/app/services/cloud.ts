@@ -549,8 +549,27 @@ function toChangeLogRow(record: ChangeLogEntry): ChangeLogRow {
 }
 
 async function fetchTable<T>(table: string, accessToken: string): Promise<T[]> {
-  const payload = await fetchSupabase(`/rest/v1/${table}?select=*`, { method: "GET" }, accessToken);
-  return Array.isArray(payload) ? (payload as T[]) : [];
+  const pageSize = 1000;
+  const rows: T[] = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const payload = await fetchSupabase(
+      `/rest/v1/${table}?select=*`,
+      {
+        method: "GET",
+        headers: {
+          Range: `${offset}-${offset + pageSize - 1}`,
+        },
+      },
+      accessToken,
+    );
+    const pageRows = Array.isArray(payload) ? (payload as T[]) : [];
+    rows.push(...pageRows);
+
+    if (pageRows.length < pageSize) break;
+  }
+
+  return rows;
 }
 
 async function upsertTable<T>(table: string, rows: T[], accessToken: string) {

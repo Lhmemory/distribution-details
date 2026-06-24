@@ -87,6 +87,30 @@
     @apply rounded-mono border border-line bg-surface-base shadow-subtle;
   }
 
+  .workspace-panel {
+    @apply overflow-hidden rounded-mono border border-line bg-surface-base shadow-panel;
+  }
+
+  .workspace-toolbar {
+    @apply border-b border-line bg-surface-base px-4 py-3.5;
+  }
+
+  .workspace-body {
+    @apply px-4 py-4;
+  }
+
+  .workspace-note {
+    @apply flex flex-wrap items-center gap-2 border-b border-line bg-[#fbfdff] px-4 py-3 text-sm text-muted;
+  }
+
+  .segmented-button {
+    @apply inline-flex min-h-9 items-center justify-center rounded-mono px-4 text-sm font-semibold transition;
+  }
+
+  .metric-tile {
+    @apply rounded-mono border border-line bg-surface-base px-4 py-4 shadow-subtle;
+  }
+
   .clamp-2 {
     display: -webkit-box;
     -webkit-box-orient: vertical;

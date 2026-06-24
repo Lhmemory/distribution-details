@@ -3,7 +3,7 @@ import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useAppContext } from "../app/context/AppContext";
 import { AsyncStatus, ColumnConfig, ProductRecord } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
-import { formatCurrency } from "../app/utils/format";
+import { formatCurrency, formatDateTimeLabel } from "../app/utils/format";
 import { canAccessSystem } from "../app/utils/permissions";
 import { downloadProductTemplate, parseProductTemplate } from "../app/utils/templateImport";
 import { Badge } from "../components/common/Badge";
@@ -167,7 +167,7 @@ export function ProductPage() {
           headerClassName: "whitespace-nowrap",
           cellClassName: "whitespace-nowrap",
           sortValue: (row: ProductRecord) => row.updatedAt,
-          render: (row: ProductRecord) => <span className="tabular text-[14px]">{row.updatedAt}</span>,
+          render: (row: ProductRecord) => <span className="tabular">{formatDateTimeLabel(row.updatedAt)}</span>,
         },
         {
           key: "actions",
@@ -178,10 +178,10 @@ export function ProductPage() {
           render: (row: ProductRecord) => {
             const canEditRow = canAccessSystem(authUser, row.systemId, "edit");
             return (
-              <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center justify-end gap-2">
                 <Button
                   variant="secondary"
-                  className="min-h-9 w-[92px] px-3"
+                  className="min-h-8 px-3"
                   disabled={!canEditRow}
                   onClick={() => {
                     setEditing(row);
@@ -192,12 +192,11 @@ export function ProductPage() {
                 </Button>
                 <Button
                   variant="danger"
-                  className="min-h-9 w-[92px] px-3"
+                  className="min-h-8 px-3"
                   disabled={!canEditRow}
                   onClick={() => deleteProduct(row.id)}
                 >
-                  <Trash2 className="mr-1 h-4 w-4" />
-                  删除
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             );
@@ -279,8 +278,8 @@ export function ProductPage() {
         </div>
       }
     >
-      <section className="tonal-panel p-5">
-        <div className="mb-4 grid gap-3 xl:grid-cols-[1fr_280px]">
+      <section className="workspace-panel">
+        <div className="workspace-toolbar grid gap-3 xl:grid-cols-[1fr_280px]">
           <input
             className="field-input bg-white"
             placeholder="搜索条码 / 商品编码 / 商品名称"
@@ -297,7 +296,7 @@ export function ProductPage() {
           </select>
         </div>
 
-        <div className="mb-4 rounded-mono bg-surface-low p-4">
+        <div className="border-b border-line bg-[#fbfdff] px-4 py-3">
           <button
             type="button"
             className="flex w-full items-center justify-between gap-3 text-left"
@@ -331,23 +330,25 @@ export function ProductPage() {
           ) : null}
         </div>
 
-        <div className="mb-4 flex items-center gap-2">
+        <div className="workspace-note">
           <Badge tone="primary">已启用模板导入</Badge>
-          <span className="text-sm text-muted">模板和导出都已带系统列；未填写系统时，默认导入到当前已选系统。</span>
+          <span>模板和导出都已带系统列；未填写系统时，默认导入到当前已选系统。</span>
         </div>
 
-        {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
-        {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
+        <div className="workspace-body">
+          {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
+          {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
 
-        <DataTable
-          rows={filteredRows}
-          columns={tableColumns}
-          status={status}
-          pageSize={20}
-          paginationSummary={`当前系统共 ${scopedTotalCount} 个商品`}
-          emptyTitle="暂无商品信息"
-          emptyDescription="当前系统或筛选条件下没有匹配商品，可以先新增或上传模板。"
-        />
+          <DataTable
+            rows={filteredRows}
+            columns={tableColumns}
+            status={status}
+            pageSize={20}
+            paginationSummary={`当前系统共 ${scopedTotalCount} 个商品`}
+            emptyTitle="暂无商品信息"
+            emptyDescription="当前系统或筛选条件下没有匹配商品，可以先新增或上传模板。"
+          />
+        </div>
       </section>
 
       <ProductDrawer

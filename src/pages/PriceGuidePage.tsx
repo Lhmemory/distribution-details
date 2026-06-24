@@ -1,4 +1,4 @@
-import { Download, FileSpreadsheet, Search, Upload } from "lucide-react";
+import { Download, Search, Upload } from "lucide-react";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useAppContext } from "../app/context/AppContext";
 import { PriceGuideRecord } from "../app/types";
@@ -195,30 +195,14 @@ export function PriceGuidePage() {
         </div>
       }
     >
-      <section className="mb-6 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <article className="tonal-panel p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-semibold text-text">导入说明</h2>
-          </div>
-          <div className="space-y-2 text-sm text-muted">
-            <p>1. 支持上传你们每个月下发的 `.xlsx / .csv` 价格指引。</p>
-            <p>2. 系统会优先识别“说明”页中的执行时间、品类和邮件标题。</p>
-            <p>3. 明细页目前只提取两个价格口径：经销商结算价、重客促销供价。</p>
-            {!canImportPriceGuides ? <p>4. 价格指引导入仅管理员可操作，普通账号只读。</p> : null}
-          </div>
-          {uploadError ? <p className="mt-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
-        </article>
-
-        <article className="tonal-panel grid gap-4 p-5 sm:grid-cols-3">
-          <MetricCard title="当前记录" value={String(scopedRecords.length)} helper="全局价格指引条数" />
-          <MetricCard title="当前页签" value={String(sheetOptions.length)} helper="已识别的价格页签" />
-          <MetricCard title="数据范围" value="全系统共用" helper="所有有权限账号共用同一套价格指引" />
-        </article>
+      <section className="mb-4 grid gap-3 md:grid-cols-3">
+        <MetricCard title="当前记录" value={String(scopedRecords.length)} helper="全局价格指引条数" />
+        <MetricCard title="当前页签" value={String(sheetOptions.length)} helper="已识别的价格页签" />
+        <MetricCard title="数据范围" value="全系统共用" helper="所有有权限账号共用同一套价格指引" />
       </section>
 
-      <section className="tonal-panel p-5">
-        <div className="mb-4 grid gap-3 xl:grid-cols-[1fr_260px]">
+      <section className="workspace-panel">
+        <div className="workspace-toolbar grid gap-3 xl:grid-cols-[1fr_260px]">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
@@ -238,14 +222,22 @@ export function PriceGuidePage() {
           </select>
         </div>
 
-        <DataTable
-          rows={visibleRecords}
-          columns={columns}
-          pageSize={20}
-          paginationSummary={`共 ${scopedRecords.length} 条价格指引`}
-          emptyTitle="暂无价格指引"
-          emptyDescription="先上传一份月度价格指引 Excel，页面就会自动解析并显示。"
-        />
+        <div className="workspace-note">
+          <span>支持上传每月下发的 `.xlsx / .csv` 价格指引；系统会识别说明页、执行时间和明细价格口径。</span>
+          {!canImportPriceGuides ? <span>价格指引导入仅管理员可操作，普通账号只读。</span> : null}
+        </div>
+
+        <div className="workspace-body">
+          {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
+          <DataTable
+            rows={visibleRecords}
+            columns={columns}
+            pageSize={20}
+            paginationSummary={`共 ${scopedRecords.length} 条价格指引`}
+            emptyTitle="暂无价格指引"
+            emptyDescription="先上传一份月度价格指引 Excel，页面就会自动解析并显示。"
+          />
+        </div>
       </section>
     </AppShell>
   );
@@ -253,9 +245,9 @@ export function PriceGuidePage() {
 
 function MetricCard({ title, value, helper }: { title: string; value: string; helper: string }) {
   return (
-    <div className="rounded-mono bg-surface-low px-4 py-4">
-      <p className="text-[11px] font-semibold tracking-[0.08em] text-muted">{title}</p>
-      <p className="mt-2 text-lg font-semibold text-text">{value}</p>
+    <div className="metric-tile">
+      <p className="text-[12px] font-semibold text-muted">{title}</p>
+      <p className="mt-2 text-2xl font-semibold leading-none text-text">{value}</p>
       <p className="mt-1 text-sm text-muted">{helper}</p>
     </div>
   );

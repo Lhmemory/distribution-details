@@ -3,7 +3,7 @@ import { ChangeEvent, useMemo, useRef, useState } from "react";
 import { useAppContext } from "../app/context/AppContext";
 import { StoreRecord } from "../app/types";
 import { exportRowsToXlsx } from "../app/utils/export";
-import { formatNumber } from "../app/utils/format";
+import { formatDateTimeLabel, formatNumber } from "../app/utils/format";
 import { canAccessSystem } from "../app/utils/permissions";
 import { downloadStoreTemplate, parseStoreTemplate } from "../app/utils/templateImport";
 import { Badge } from "../components/common/Badge";
@@ -154,7 +154,7 @@ export function StorePage() {
       headerClassName: "whitespace-nowrap",
       cellClassName: "whitespace-nowrap",
       sortValue: (row) => row.updatedAt,
-      render: (row) => <span className="tabular text-[14px]">{row.updatedAt}</span>,
+      render: (row) => <span className="tabular">{formatDateTimeLabel(row.updatedAt)}</span>,
     },
     {
       key: "actions",
@@ -257,8 +257,8 @@ export function StorePage() {
         </div>
       }
     >
-      <section className="tonal-panel p-5">
-        <div className="mb-4 grid gap-3 md:grid-cols-[1fr_220px]">
+      <section className="workspace-panel">
+        <div className="workspace-toolbar grid gap-3 md:grid-cols-[1fr_220px]">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
@@ -278,22 +278,24 @@ export function StorePage() {
           </select>
         </div>
 
-        <div className="mb-4 flex items-center gap-2">
+        <div className="workspace-note">
           <Badge tone="primary">已启用模板导入</Badge>
-          <span className="text-sm text-muted">模板和导出都已带系统列；未填写系统时，默认导入到当前已选系统。</span>
+          <span>模板和导出都已带系统列；未填写系统时，默认导入到当前已选系统。</span>
         </div>
 
-        {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
-        {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
+        <div className="workspace-body">
+          {uploadMessage ? <p className="mb-4 rounded-mono bg-primary/10 px-3 py-2 text-sm text-primary">{uploadMessage}</p> : null}
+          {uploadError ? <p className="mb-4 rounded-mono bg-critical-bg/10 px-3 py-2 text-sm text-critical">{uploadError}</p> : null}
 
-        <DataTable
-          rows={rows}
-          columns={columns}
-          pageSize={20}
-          paginationSummary={`当前系统共 ${scopedTotalCount} 个门店`}
-          emptyTitle="暂无门店信息"
-          emptyDescription="当前系统下没有匹配门店，可以调整筛选条件或上传模板。"
-        />
+          <DataTable
+            rows={rows}
+            columns={columns}
+            pageSize={20}
+            paginationSummary={`当前系统共 ${scopedTotalCount} 个门店`}
+            emptyTitle="暂无门店信息"
+            emptyDescription="当前系统下没有匹配门店，可以调整筛选条件或上传模板。"
+          />
+        </div>
       </section>
 
       <StoreDrawer open={Boolean(activeStore)} store={activeStore} onClose={() => setActiveStore(null)} />

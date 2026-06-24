@@ -104,14 +104,14 @@ export function SalesPage() {
         </div>
       }
     >
-      <section className="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
-        <div className="space-y-6">
-          <article className="tonal-panel p-5">
-            <div className="mb-4 flex flex-wrap gap-3">
+      <section className="grid gap-4 xl:grid-cols-[1.8fr_1fr]">
+        <div className="space-y-4">
+          <article className="workspace-panel">
+            <div className="workspace-toolbar flex flex-wrap gap-3">
               {granularityOptions.map((item) => (
                 <button
                   key={item.key}
-                  className={`rounded-mono px-4 py-2 text-sm font-medium ${
+                  className={`segmented-button ${
                     granularity === item.key ? "bg-primary text-white" : "bg-surface-low text-muted"
                   }`}
                   onClick={() => setGranularity(item.key)}
@@ -145,10 +145,10 @@ export function SalesPage() {
               ) : null}
             </div>
 
-            <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">按期间维护数据</p>
-                <h2 className="mt-1 text-lg font-semibold text-text">
+                <p className="text-xs font-medium text-muted">按期间维护数据</p>
+                <h2 className="mt-1 text-base font-semibold text-text">
                   {activeRecord ? `${activeRecord.periodLabel} · ${activeRecord.brand}` : "暂无销售记录"}
                 </h2>
               </div>
@@ -156,7 +156,7 @@ export function SalesPage() {
             </div>
 
             {activeRecord ? (
-              <div className="overflow-x-auto rounded-mono bg-surface-base shadow-ambient">
+              <div className="workspace-body overflow-x-auto">
                 <table className="table-grid min-w-[760px]">
                   <thead>
                     <tr>
@@ -188,7 +188,7 @@ export function SalesPage() {
                 </table>
               </div>
             ) : (
-              <div className="rounded-mono bg-surface-low px-6 py-12 text-center text-sm text-muted">
+              <div className="m-4 rounded-mono bg-surface-low px-6 py-12 text-center text-sm text-muted">
                 当前筛选条件下没有可维护的销售记录。
               </div>
             )}
@@ -209,9 +209,9 @@ export function SalesPage() {
 
 function MetricCard({ title, value, helper }: { title: string; value: string; helper: string }) {
   return (
-    <article className="tonal-panel p-5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{title}</p>
-      <h3 className="mt-3 text-lg font-semibold text-text">{value}</h3>
+    <article className="metric-tile">
+      <p className="text-[12px] font-semibold text-muted">{title}</p>
+      <h3 className="mt-2 text-xl font-semibold text-text">{value}</h3>
       <p className="mt-2 text-sm text-muted">{helper}</p>
     </article>
   );

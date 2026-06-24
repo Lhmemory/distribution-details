@@ -1,4 +1,5 @@
 import { StoreRecord } from "../../app/types";
+import { formatDateTimeLabel } from "../../app/utils/format";
 import { Drawer } from "../common/Drawer";
 
 export function StoreDrawer({
@@ -29,7 +30,7 @@ export function StoreDrawer({
           {store.plannedOpenDate ? <Info label="计划开业时间" value={store.plannedOpenDate} /> : null}
           {store.renovationOpenDate ? <Info label="店改开业时间" value={store.renovationOpenDate} /> : null}
           <Info label="销量" value={String(store.salesVolume)} />
-          <Info label="最近更新时间" value={store.updatedAt} />
+          <Info label="最近更新时间" value={formatDateTimeLabel(store.updatedAt)} />
         </div>
       ) : null}
     </Drawer>
